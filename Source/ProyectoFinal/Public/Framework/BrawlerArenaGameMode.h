@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "Utils/WarriorType.h"
 #include "BrawlerArenaGameMode.generated.h"
 
 /**
@@ -13,6 +14,7 @@ UCLASS()
 class PROYECTOFINAL_API ABrawlerArenaGameMode : public AGameMode
 {
 	GENERATED_BODY()
+public:
 	ABrawlerArenaGameMode();
 	
 	virtual void StartMatch() override;
@@ -34,8 +36,13 @@ class PROYECTOFINAL_API ABrawlerArenaGameMode : public AGameMode
 	// Cuanto dura la partida?
 	UPROPERTY(EditDefaultsOnly, Category="GameMode")
 	float MatchTotalTimerDuration;
+private:
 	
+	UFUNCTION(BlueprintCallable, Category="Warrior Class")
+	void AssignWarriorType(APlayerController* NewPlayer);
 	
+	void RefillWarriorClassesPool();
 	
-	
+	UPROPERTY()
+	TArray<EWarriorType> AvailableClassesPool;
 };

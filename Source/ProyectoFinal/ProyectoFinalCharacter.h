@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Utils/WarriorType.h"
 #include "ProyectoFinalCharacter.generated.h"
 
 class USpringArmComponent;
@@ -92,5 +93,17 @@ public:
 
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
+public:
+	// Aca vamos a redefinir el tipo de warrior para cada cliente
+	virtual void PossessedBy(AController* NewController) override;
+	
+	// Por ahora seteo el color de la mesh segun el tipo de EWarriorType, pero quiero cambiar la SK del character
+	// cuando esta funcion se ejecute
+	void UpdateWarriorMaterial(EWarriorType WarriorType);
+	
+	// Replicamos para el cliente cuando define el PlayerState
+	virtual void OnRep_PlayerState() override;
+	
 };
 

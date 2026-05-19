@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "ProyectoFinal.h"
+#include "Framework/BrawlerArenaPlayerState.h"
 
 AProyectoFinalCharacter::AProyectoFinalCharacter()
 {
@@ -131,3 +132,47 @@ void AProyectoFinalCharacter::DoJumpEnd()
 	// signal the character to stop jumping
 	StopJumping();
 }
+
+void AProyectoFinalCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	ABrawlerArenaPlayerState* PS = Cast<ABrawlerArenaPlayerState>(NewController->PlayerState);
+	if (PS)
+	{
+		EWarriorType WarriorType = PS->GetWarriorType();
+		UpdateWarriorMaterial(WarriorType);
+		
+	}
+}
+
+void AProyectoFinalCharacter::UpdateWarriorMaterial(EWarriorType WarriorType)
+{
+	switch (WarriorType)
+	{
+	case EWarriorType::None:
+		break;
+	case EWarriorType::Barbarian:
+		GetMesh()->SetColorParameterValueOnMaterials(FName("Paint Tint"), FColor::Orange);
+		break;
+	case EWarriorType::Archer:
+		GetMesh()->SetColorParameterValueOnMaterials(FName("Paint Tint"), FColor::Green);
+		break;
+	case EWarriorType::Mage:
+		GetMesh()->SetColorParameterValueOnMaterials(FName("Paint Tint"), FColor::Blue);
+		break;
+	}
+}
+
+void AProyectoFinalCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	ABrawlerArenaPlayerState* PS = Cast<ABrawlerArenaPlayerState>(GetPlayerState());
+	if (PS)
+	{
+		EWarriorType WarriorType = PS->GetWarriorType();
+		UpdateWarriorMaterial(WarriorType);
+		
+	}
+}
+
