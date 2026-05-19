@@ -3,6 +3,8 @@
 
 #include "Public/Framework/BrawlerArenaGameMode.h"
 
+#include "Public/Framework/BrawlerArenaPlayerState.h"
+
 ABrawlerArenaGameMode::ABrawlerArenaGameMode()
 {
 	bDelayedStart = true;
@@ -23,4 +25,11 @@ void ABrawlerArenaGameMode::BeginPlay()
 void ABrawlerArenaGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+	
+	// Definimos una "Clase de jugador" para cada player participando
+	ABrawlerArenaPlayerState* PS = Cast<ABrawlerArenaPlayerState>(NewPlayer->PlayerState);
+	if (PS)
+	{
+		
+	}
 }
