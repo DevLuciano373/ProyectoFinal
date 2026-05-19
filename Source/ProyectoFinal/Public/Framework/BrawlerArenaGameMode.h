@@ -13,4 +13,29 @@ UCLASS()
 class PROYECTOFINAL_API ABrawlerArenaGameMode : public AGameMode
 {
 	GENERATED_BODY()
+	ABrawlerArenaGameMode();
+	
+	virtual void StartMatch() override;
+	
+	virtual void BeginPlay() override;
+	
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	
+	// Aca deberia definir como es que se gana y que hacer al respecto
+	// virtual void CheckWinCondition();
+	
+	// virtual void DeclareWinner();
+	
+	FTimerHandle MatchTimer;
+	
+	UPROPERTY(EditDefaultsOnly, Category="GameMode")
+	float MatchStartTimerDuration = 5;
+	
+	// Cuanto dura la partida?
+	UPROPERTY(EditDefaultsOnly, Category="GameMode")
+	float MatchTotalTimerDuration;
+	
+	
+	
+	
 };
