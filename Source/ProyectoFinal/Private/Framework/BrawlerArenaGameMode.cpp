@@ -2,7 +2,7 @@
 
 
 #include "Public/Framework/BrawlerArenaGameMode.h"
-
+#include "Utils/WarriorType.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Public/Framework/BrawlerArenaPlayerState.h"
 

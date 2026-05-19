@@ -21,7 +21,7 @@ public:
 	EWarriorType GetWarriorType() const;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_WarriorType)
-	EWarriorType Warrior = EWarriorType::None;
+	EWarriorType WarriorType = EWarriorType::None;
 	
 	UFUNCTION()
 	void OnRep_WarriorType();

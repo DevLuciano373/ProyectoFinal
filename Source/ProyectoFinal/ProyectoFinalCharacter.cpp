@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "ProyectoFinal.h"
 #include "Framework/BrawlerArenaPlayerState.h"
+#include "Utils/WarriorType.h"
 
 AProyectoFinalCharacter::AProyectoFinalCharacter()
 {

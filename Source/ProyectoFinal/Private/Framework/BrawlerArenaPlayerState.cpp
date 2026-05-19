@@ -2,17 +2,17 @@
 
 
 #include "Public/Framework/BrawlerArenaPlayerState.h"
-
+#include "Utils/WarriorType.h"
 #include "Net/UnrealNetwork.h"
 
 void ABrawlerArenaPlayerState::SetWarriorType(EWarriorType Type)
 {
-	Warrior = Type;
+	WarriorType = Type;
 }
 
 EWarriorType ABrawlerArenaPlayerState::GetWarriorType() const
 {
-	return Warrior;
+	return WarriorType;
 }
 
 void ABrawlerArenaPlayerState::OnRep_WarriorType()
@@ -22,5 +22,5 @@ void ABrawlerArenaPlayerState::OnRep_WarriorType()
 void ABrawlerArenaPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass, Warrior)
+	DOREPLIFETIME(ThisClass, WarriorType);
 }
