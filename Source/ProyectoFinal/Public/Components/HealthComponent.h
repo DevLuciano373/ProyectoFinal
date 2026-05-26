@@ -4,15 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Utils/HealthModifierType.h"
 #include "HealthComponent.generated.h"
 
-UENUM(BlueprintType)
-enum class EHealthModifierType: uint8
-{
-	Damage UMETA(DisplayName="Daño"),
-	Healing UMETA(DisplayName="Curacion")
-};
-
+class HealthModifierComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChange, float, CurrentHealth, float, MaxHealth);
 
