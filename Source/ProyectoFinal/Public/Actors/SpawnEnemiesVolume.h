@@ -27,6 +27,26 @@ public:
 	
 	
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<UBoxComponent> SpawnEnemiesVolume;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
+	TSubclassOf<AActor> EnemyClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
+	float SpawnRate = 3.0f;
+	
+	UFUNCTION()
+	void SpawnEnemy();
+	
+	FTimerHandle SpawnerTimerHandle;
+	
+	// Para que no spawneen abajo del mapa o adentro de una mesh
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
+	float SpawnOffsetZ = 100.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
+	float TraceDistance = 2000.0f;
+	
+	bool GetValidteSpawnPoint(FVector& OutLocation);
 };
