@@ -25,15 +25,7 @@ void ASpawnEnemiesVolume::BeginPlay()
 	SpawnEnemiesVolume->ShapeColor = FColor::Yellow;
 	SpawnEnemiesVolume->MarkRenderStateDirty();
 	
-	// Timer para spawnear
-	if (EnemyClass)
-	{
-		GetWorldTimerManager().SetTimer(SpawnerTimerHandle, this, &ASpawnEnemiesVolume::SpawnEnemy, SpawnRate, true);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("No se definió una clase de enemigo para el Spawn"));
-	}
+
 	
 }
 
@@ -43,7 +35,7 @@ void ASpawnEnemiesVolume::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ASpawnEnemiesVolume::SpawnEnemy()
+void ASpawnEnemiesVolume::SpawnEnemy() const
 {
 	UWorld* World = GetWorld();
 	
@@ -51,7 +43,7 @@ void ASpawnEnemiesVolume::SpawnEnemy()
 
 	FVector FinalSpawnLocation;
 	
-	if (GetValidteSpawnPoint(FinalSpawnLocation))
+	if (GetValidateSpawnPoint(FinalSpawnLocation))
 	{
 		FRotator Rotation = FRotator(0.0f, UKismetMathLibrary::RandomFloatInRange(0.0f, 360.0f), 0.0f);
 		
@@ -62,7 +54,7 @@ void ASpawnEnemiesVolume::SpawnEnemy()
 	}
 }
 
-bool ASpawnEnemiesVolume::GetValidteSpawnPoint(FVector& OutLocation)
+bool ASpawnEnemiesVolume::GetValidateSpawnPoint(FVector& OutLocation) const
 {
 	UWorld* World = GetWorld();
 	if (!World) return false;
@@ -91,6 +83,11 @@ bool ASpawnEnemiesVolume::GetValidteSpawnPoint(FVector& OutLocation)
 	}
 	return false;
 	
+}
+
+void ASpawnEnemiesVolume::SpawnSingleEnemy()
+{
+	SpawnEnemy();
 }
 
 

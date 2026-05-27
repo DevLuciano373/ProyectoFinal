@@ -37,7 +37,7 @@ private:
 	float SpawnRate = 3.0f;
 	
 	UFUNCTION()
-	void SpawnEnemy();
+	void SpawnEnemy() const;
 	
 	FTimerHandle SpawnerTimerHandle;
 	
@@ -48,5 +48,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
 	float TraceDistance = 2000.0f;
 	
-	bool GetValidteSpawnPoint(FVector& OutLocation);
+	bool GetValidateSpawnPoint(FVector& OutLocation) const;
+	
+public:
+	// Para llamar desde el GM
+	UFUNCTION(BlueprintCallable, Category = "SpawningZone")
+	void SpawnSingleEnemy();
+	
 };
