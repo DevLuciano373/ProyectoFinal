@@ -11,6 +11,7 @@
 #include "TimerManager.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Framework/BrawlerArenaGameState.h"
 
 ACombatEnemy::ACombatEnemy()
 {
@@ -248,6 +249,16 @@ void ACombatEnemy::HandleDeath()
 
 	// set up the death timer
 	GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &ACombatEnemy::RemoveFromLevel, DeathRemovalTime);
+	
+	// Llamamos al GameState para que Tenga nocion de que paso
+	if (UWorld* World =GetWorld())
+	{
+		if (ABrawlerArenaGameState* GS = World->GetGameState<ABrawlerArenaGameState>())
+		{
+			GS->OnEnemyKilled();
+		}
+		
+	}
 }
 
 void ACombatEnemy::ApplyHealing(float Healing, AActor* Healer)
