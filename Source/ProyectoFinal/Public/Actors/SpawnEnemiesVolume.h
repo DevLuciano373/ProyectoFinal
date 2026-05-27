@@ -39,8 +39,6 @@ private:
 	UFUNCTION()
 	void SpawnEnemy() const;
 	
-	FTimerHandle SpawnerTimerHandle;
-	
 	// Para que no spawneen abajo del mapa o adentro de una mesh
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawningZone", meta=(AllowPrivateAccess="true"))
 	float SpawnOffsetZ = 100.0f;

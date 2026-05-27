@@ -8,6 +8,7 @@
 #include "Utils/WarriorType.h"
 #include "ProyectoFinalCharacter.generated.h"
 
+class UBoxComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
@@ -94,6 +95,8 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	
+	// De aca para abajo modificamos nosotros
+	
 public:
 	// Aca vamos a redefinir el tipo de warrior para cada cliente
 	virtual void PossessedBy(AController* NewController) override;
@@ -105,5 +108,35 @@ public:
 	// Replicamos para el cliente cuando define el PlayerState
 	virtual void OnRep_PlayerState() override;
 	
+protected:
+	// Agregamos una accion de atacar
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* AttackAction;
+
+	void DoAttack();
+	
+	/** AnimMontage that will play for charged attacks */
+	UPROPERTY(EditAnywhere, Category="Combat")
+	UAnimMontage* ChargedAttackMontage;
+
+	FOnMontageEnded OnAttackMontageEnded;
+	
+	UPROPERTY(BlueprintReadOnly, Category="Combat")
+	bool bIsAttacking = false;
+	
+	UFUNCTION()
+	void AttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	TObjectPtr<UBoxComponent> DashAttackHitBox;
+	
+	UFUNCTION()
+	void OnAttackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
+						bool bFromSweep, const FHitResult& SweepResult);
+	
+	virtual void BeginPlay() override;
 };
+
 
