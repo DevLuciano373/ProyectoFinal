@@ -7,6 +7,7 @@
 #include "Utils/WarriorType.h"
 #include "BrawlerArenaGameMode.generated.h"
 
+class ASpawnEnemiesVolume;
 /**
  * 
  */
@@ -47,6 +48,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Match Config")
 	int32 MaxPlayers;
 	
+	// Tiempo de descanso entre ola y ola
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Match Config")
+	float CooldownWaveTime = 5.0f;
+	
 private:
 	
 	UFUNCTION(BlueprintCallable, Category="Warrior Class")
@@ -59,9 +64,19 @@ private:
 	UFUNCTION()
 	void DetermineWinner();
 
+	UPROPERTY()
+	TArray<ASpawnEnemiesVolume*> SpawnerZones;
+	
+	void StartNextWave();
 	
 	UPROPERTY()
 	TArray<EWarriorType> AvailableClassesPool;
+
+	FTimerHandle NextWaveTimerHandle;
+
 	
+public:
+	// Se llama desde el gamestate
+	void OnWaveCleared();
 
 };

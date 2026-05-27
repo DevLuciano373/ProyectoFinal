@@ -2,6 +2,9 @@
 
 
 #include "Public/Framework/BrawlerArenaGameMode.h"
+
+#include "EngineUtils.h"
+#include "Actors/SpawnEnemiesVolume.h"
 #include "Utils/WarriorType.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Public/Framework/BrawlerArenaPlayerState.h"
@@ -21,6 +24,13 @@ void ABrawlerArenaGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	GetWorldTimerManager().SetTimer(MatchTimer, this, &ABrawlerArenaGameMode::StartMatch, MatchStartTimerDuration, false);
+	
+	for (TActorIterator<ASpawnEnemiesVolume> It(GetWorld()); It; ++It)
+	{
+		SpawnerZones.Add(*It);
+	}
+	
+	StartNextWave();
 }
 
 void ABrawlerArenaGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
@@ -104,13 +114,46 @@ void ABrawlerArenaGameMode::DetermineWinner()
 			BestPlayer = PS;
 		}
 	}
-	
+	// Que pasa si tengo mas de uno?
 	if (BestPlayer)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::Printf(TEXT("El ganador es %s"), *BestPlayer->GetName()));
 		// Crear un widget que muestre la condicion de victoria?
-		// GS->Multicast_OnGameEnded(BestPlayer); para que muestre el widget 
+		// GS->Multicast_OnGameEnded(BestPlayer); para que muestre el widget [dice kent que no, que use un booleano en cada character para que se muestre el widget]
 		EndMatch();
+	}
+}
+
+void ABrawlerArenaGameMode::StartNextWave()
+{
+	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
+	if (!GS || SpawnerZones.Num() == 0) return;
+	
+	GS->CurrentWave++;
+	// La cantidad enemigos incrementan cuando aumenta la cantidad de oleadas! Desde aca podria cambiarse el tipo de enemigos a
+	// spawnear con la oleada creciente para que sea mas dificil
+	int EnemiesToSpawn = 5 + (GS->CurrentWave * 2);
+	GS->ActiveEnemies = EnemiesToSpawn;
+
+	for (int i = 0; i < EnemiesToSpawn; ++i)
+	{
+		int RandomZoneIndex = FMath::RandRange(0, SpawnerZones.Num() - 1);
+		SpawnerZones[RandomZoneIndex]->SpawnSingleEnemy();
+		
+	}
+	
+	
+}
+
+void ABrawlerArenaGameMode::OnWaveCleared()
+{
+	RemainingWaves--;
+	if (RemainingWaves <= 0)
+	{
+		DetermineWinner();
+	}else
+	{
+		StartNextWave();
 	}
 }
 
