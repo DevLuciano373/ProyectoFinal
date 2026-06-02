@@ -49,6 +49,7 @@ ACombatCharacter::ACombatCharacter()
 
 	// set the player tag
 	Tags.Add(FName("Player"));
+	
 }
 
 void ACombatCharacter::Move(const FInputActionValue& Value)

@@ -38,15 +38,15 @@ public:
 	
 	// Cuantas olas son las que se van a desarrollar en la partida
 	UPROPERTY(EditDefaultsOnly, Category="Match Config")
-	int32 EnemyWaves = 3; 	
+	uint8 EnemyWaves = 3; 	
 	
 	// Numero de olas restantes
 	UPROPERTY()
-	int32 RemainingWaves;
+	uint8 RemainingWaves = EnemyWaves;
 	
 	// Número maximo de jugadores en el match
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Match Config")
-	int32 MaxPlayers;
+	uint8 MaxPlayers;
 	
 	// Tiempo de descanso entre ola y ola
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Match Config")

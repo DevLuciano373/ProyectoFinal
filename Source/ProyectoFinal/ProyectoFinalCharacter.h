@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Characters/Character_Base.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Utils/WarriorType.h"
@@ -21,7 +22,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  *  Implements a controllable orbiting camera
  */
 UCLASS(abstract)
-class AProyectoFinalCharacter : public ACharacter
+class AProyectoFinalCharacter : public ACharacter_Base
 {
 	GENERATED_BODY()
 
