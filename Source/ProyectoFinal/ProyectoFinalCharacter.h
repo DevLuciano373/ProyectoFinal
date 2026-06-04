@@ -110,32 +110,26 @@ public:
 	virtual void OnRep_PlayerState() override;
 	
 protected:
+	
 	// Agregamos una accion de atacar
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* AttackAction;
 
+	// Agrego la accion de curar
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* HealAction;
 	void DoAttack();
-	
-	/** AnimMontage that will play for charged attacks */
-	UPROPERTY(EditAnywhere, Category="Combat")
-	UAnimMontage* ChargedAttackMontage;
-
-	FOnMontageEnded OnAttackMontageEnded;
-	
 	UPROPERTY(BlueprintReadOnly, Category="Combat")
 	bool bIsAttacking = false;
 	
-	UFUNCTION()
-	void AttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void DoHeal();
 	
+	// Barra de vida
+	UPROPERTY(EditAnywhere, Category="UI")
+	TSubclassOf<class UUserWidget> HUDWidgetClass;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
-	TObjectPtr<UBoxComponent> DashAttackHitBox;
-	
-	UFUNCTION()
-	void OnAttackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
-						bool bFromSweep, const FHitResult& SweepResult);
+	UPROPERTY()
+	class UPlayerHud* HUDWidgetInstance;
 	
 	virtual void BeginPlay() override;
 };

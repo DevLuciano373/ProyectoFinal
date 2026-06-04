@@ -6,6 +6,12 @@
 #include "Components/ActorComponent.h"
 #include "DamageSystemComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDamageTaken, const FDamageInfo&, DamageInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDamageAvoided, const FDamageInfo&, DamageInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealRecived, float, HealAmount, AActor*, Healer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, CurrentHealth, float, MaxHealth);
+
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PROYECTOFINAL_API UDamageSystemComponent : public UActorComponent
@@ -16,23 +22,31 @@ public:
 	// Sets default values for this component's properties
 	UDamageSystemComponent();
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing=OnRep_MaxHealth)
 	float MaxHealth=100.0f;
+	
+	UFUNCTION()
+	void OnRep_MaxHealth() const;
+	
+	UFUNCTION()
+	void OnRep_CurrentHealth() const;
+	
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 private:
 	
-	UPROPERTY()
+	UPROPERTY(Replicated=OnRep_CurrentHealth)
 	float CurrentHealth = MaxHealth;
 	
 
 	UPROPERTY()
-	bool IsDead = false;
+	bool bIsDead = false;
 	
 	UPROPERTY()
-	bool IsBlocking= false;
+	bool bIsBlocking= false;
 	
 	UPROPERTY()
-	bool IsInvincible= false;
+	bool bIsInvincible= false;
 	
 
 protected:
@@ -42,10 +56,10 @@ protected:
 public:
 	
 	UFUNCTION(BlueprintCallable, Category="Damage")
-	bool HandleIncomingDamage(FDamageInfo& DamageInfo);
+	bool HandleIncomingDamage(const FDamageInfo& DamageInfo);
 
 	UFUNCTION(BlueprintCallable, Category="Damage")
-	void HandleIncomingHeal(float HealAmmount, AActor* Healer);
+	void HandleIncomingHeal(float HealAmount, AActor* Healer);
 	
 	// Get
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Health")
@@ -55,18 +69,34 @@ public:
 	float GetMaxHealth(){return MaxHealth;}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="States")
-	float GetIsDead(){return IsDead;}
+	bool GetIsDead(){return bIsDead;}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="States")
-	float GetIsBlocking(){return IsBlocking;}
+	bool GetIsBlocking(){return bIsBlocking;}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="States")
-	float GetIsInvincible(){return IsInvincible;}
+	bool GetIsInvincible(){return bIsInvincible;}
 	
 	// Set
 	UFUNCTION(BlueprintCallable, Category="Health")
-	void SetIsInvincible(bool NewInvincible){IsInvincible = NewInvincible;}
+	void SetIsInvincible(bool NewInvincible){bIsInvincible = NewInvincible;}
 	
 	UFUNCTION(BlueprintCallable, Category="States")
-	void SetIsBlocking(const bool NewBlocking) {IsBlocking = NewBlocking;}
+	void SetIsBlocking(const bool NewBlocking) {bIsBlocking = NewBlocking;}
+	
+	// Delegados
+	UPROPERTY(BlueprintAssignable, Category="Damage Events")
+	FOnDamageTaken OnDamageTaken;
+	
+	UPROPERTY(BlueprintAssignable, Category="Damage Events")
+	FOnDeath OnDeath;
+	
+	UPROPERTY(BlueprintAssignable, Category="Damage Events")
+	FOnHealRecived OnHealRecived;
+	
+	UPROPERTY(BlueprintAssignable, Category="Damage Events")
+	FOnDamageAvoided OnDamageAvoided;
+	
+	UPROPERTY(BlueprintAssignable, Category="Damage Events")
+	FOnHealthChanged OnHealthChanged;
 };

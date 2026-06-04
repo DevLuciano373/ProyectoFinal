@@ -5,6 +5,7 @@
 
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/DamageSystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -36,13 +37,47 @@ ACharacter_Base::ACharacter_Base()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+	
+	DamageSystemComponent = CreateDefaultSubobject<UDamageSystemComponent>(TEXT("DamageSystemComponent"));
+	DamageSystemComponent->SetIsReplicated(true);
+	
+	
 }
 
 // Called when the game starts or when spawned
 void ACharacter_Base::BeginPlay()
 {
 	Super::BeginPlay();
+	if (DamageSystemComponent)
+	{
+		DamageSystemComponent->OnDamageTaken.AddDynamic(this, &ACharacter_Base::RespondToDamageTaken);
+		DamageSystemComponent->OnHealRecived.AddDynamic(this, &ACharacter_Base::RespondToHealRecived);
+		DamageSystemComponent->OnDamageAvoided.AddDynamic(this, &ACharacter_Base::RespondToDamageAvoided);
+		DamageSystemComponent->OnDeath.AddDynamic(this, &ACharacter_Base::RespondToDeath);
+		
+	}
 	
+	
+}
+
+void ACharacter_Base::RespondToDamageAvoided_Implementation(const FDamageInfo& DamageInfo)
+{
+}
+
+void ACharacter_Base::RespondToDamageTaken_Implementation(const FDamageInfo& DamageInfo)
+{
+}
+
+
+void ACharacter_Base::RespondToHealRecived_Implementation(float HealAmount, AActor* Healer)
+{
+}
+
+void ACharacter_Base::RespondToDeath_Implementation()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetSimulatePhysics(true);
 }
 
 // Called every frame
@@ -55,5 +90,39 @@ void ACharacter_Base::Tick(float DeltaTime)
 void ACharacter_Base::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+float ACharacter_Base::GetMaxHealth_Implementation()
+{
+	if (!DamageSystemComponent) return 0.0f;
+	return DamageSystemComponent->GetMaxHealth();
+	
+}
+
+float ACharacter_Base::GetCurrentHealth_Implementation()
+{
+	if (!DamageSystemComponent) return false;
+	return DamageSystemComponent->GetCurrentHealth();
+}
+
+bool ACharacter_Base::GetIsDeath_Implementation()
+{
+	if (!DamageSystemComponent) return false;
+	return DamageSystemComponent->GetIsDead();
+}
+
+void ACharacter_Base::Heal_Implementation(float HealAmount, AActor* Healer)
+{
+	if (DamageSystemComponent)
+	{
+		DamageSystemComponent->HandleIncomingHeal(HealAmount, Healer);
+	}
+}
+
+bool ACharacter_Base::TakeDamage_Implementation(const FDamageInfo& DamageInfo)
+{
+	if (!DamageSystemComponent) return false;
+	
+	return DamageSystemComponent->HandleIncomingDamage(DamageInfo);
 }
 

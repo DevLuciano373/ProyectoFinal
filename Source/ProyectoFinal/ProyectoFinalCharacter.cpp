@@ -11,10 +11,14 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "ProyectoFinal.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
+#include "Components/DamageSystemComponent.h"
 #include "Framework/BrawlerArenaPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Utils/WarriorType.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Widgets/PlayerHud.h"
 
 AProyectoFinalCharacter::AProyectoFinalCharacter()
 {
@@ -53,17 +57,7 @@ AProyectoFinalCharacter::AProyectoFinalCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 	
-	// Agregamos la colision para el ataque
-	DashAttackHitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("DashAttackHitBox"));
-	DashAttackHitBox->InitBoxExtent(FVector(32.f, 32.f, 32.f)); // Define el tamaño (ajusta los valores a tu gusto)
-	DashAttackHitBox->SetupAttachment(GetMesh(), FName("dash_socket"));
-	DashAttackHitBox->SetGenerateOverlapEvents(true);
-
-	DashAttackHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	DashAttackHitBox->SetCollisionObjectType(ECC_WorldDynamic);
-	DashAttackHitBox->SetCollisionResponseToAllChannels(ECR_Overlap);
 	
-	DashAttackHitBox->SetHiddenInGame(false);
 }
 
 void AProyectoFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -83,7 +77,9 @@ void AProyectoFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProyectoFinalCharacter::Look);
 		
 		// Esta accion la agregamos nosotros!!
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AProyectoFinalCharacter::DoAttack);
+		// EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AProyectoFinalCharacter::DoAttack);
+		
+		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Started, this, &AProyectoFinalCharacter::DoHeal);
 	}
 	else
 	{
@@ -194,50 +190,75 @@ void AProyectoFinalCharacter::OnRep_PlayerState()
 	}
 }
 
-void AProyectoFinalCharacter::BeginPlay()
+void AProyectoFinalCharacter::DoAttack()
 {
-	Super::BeginPlay();
-	DashAttackHitBox->ShapeColor = FColor::Blue;
-	DashAttackHitBox->MarkRenderStateDirty();
-	DashAttackHitBox->OnComponentBeginOverlap.AddDynamic(this, &AProyectoFinalCharacter::OnAttackOverlap);
+
+}
+
+void AProyectoFinalCharacter::DoHeal()
+{
+	FVector ActorLocation;
+	FRotator ActorRotator;
+	GetController()->GetPlayerViewPoint(ActorLocation, ActorRotator);
+	
+	FVector Start = GetActorLocation();
+	
+	FVector End = GetActorLocation();
+	
+	float Radius = 100.0f;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	
+	TArray<FHitResult> HitResults;
+	
+	bool bHit = UKismetSystemLibrary::SphereTraceMulti(
+		this,
+		Start,
+		End,
+		Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResults,
+		true
+	);
+	
+	if (bHit)
+	{
+		TArray<AActor*> HitActors;
+		
+		for (const FHitResult& Hit: HitResults)
+		{
+			if (AActor* HitActor = Hit.GetActor(); HitActor && !HitActors.Contains(HitActor))
+			{
+				HitActors.AddUnique(HitActor);
+				if (UDamageSystemComponent* DSComp = HitActor->FindComponentByClass<UDamageSystemComponent>())
+				{
+					DSComp->HandleIncomingHeal(20.0f, this);
+					GEngine->AddOnScreenDebugMessage(-1, 2.0, FColor::Green, TEXT("20 puntos de curacion"));
+					GEngine->AddOnScreenDebugMessage(-1, 2.0, FColor::Cyan, FString::Printf(TEXT("Current Health: %f"), DSComp->GetCurrentHealth()));
+				}
+								
+			}
+		}
+
+	}
 	
 }
 
-void AProyectoFinalCharacter::AttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void AProyectoFinalCharacter::BeginPlay()
 {
-	bIsAttacking = false;
-	DashAttackHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	DashAttackHitBox->ShapeColor = FColor::Blue;
-}
-
-void AProyectoFinalCharacter::DoAttack()
-{
-		
-	bIsAttacking = true;
-	OnAttackMontageEnded.BindUObject(this, &AProyectoFinalCharacter::AttackMontageEnded);
-	DashAttackHitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	DashAttackHitBox->ShapeColor = FColor::Yellow;
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	Super::BeginPlay();
+	if (HUDWidgetClass)
 	{
-		const float MontageLength = AnimInstance->Montage_Play(ChargedAttackMontage, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, true);
-		
-		if (MontageLength > 0.0f)
+		HUDWidgetInstance = CreateWidget<UPlayerHud>(GetWorld(), HUDWidgetClass);
+		if (HUDWidgetInstance)
 		{
-			AnimInstance->Montage_SetEndDelegate(OnAttackMontageEnded, ChargedAttackMontage);
+			HUDWidgetInstance->AddToViewport();
 		}
 	}
+}
 
-}
-void AProyectoFinalCharacter::OnAttackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor && OtherActor !=this)
-	{
-		UGameplayStatics::ApplyDamage(
-			OtherActor, 
-			20.0f, 
-			GetController(), this, UDamageType::StaticClass());
-		DashAttackHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
-}
+
 

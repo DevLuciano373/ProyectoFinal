@@ -3,6 +3,7 @@
 
 #include "Components/DamageSystemComponent.h"
 
+#include "Net/UnrealNetwork.h"
 #include "Utils/DamageSystemTypes.h"
 
 
@@ -16,6 +17,25 @@ UDamageSystemComponent::UDamageSystemComponent()
 	// ...
 }
 
+void UDamageSystemComponent::OnRep_MaxHealth() const
+{
+	// Para la UI
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
+
+void UDamageSystemComponent::OnRep_CurrentHealth() const
+{
+	// Para la UI
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
+
+void UDamageSystemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UDamageSystemComponent, CurrentHealth);
+	DOREPLIFETIME(UDamageSystemComponent, MaxHealth);
+}
+
 
 // Called when the game starts
 void UDamageSystemComponent::BeginPlay()
@@ -26,23 +46,35 @@ void UDamageSystemComponent::BeginPlay()
 	
 }
 
-bool UDamageSystemComponent::HandleIncomingDamage(FDamageInfo& DamageInfo)
+bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 {
-	if (IsDead) { return false;}
+	if (bIsDead) { return false;}
 	
-	if (IsInvincible && !DamageInfo.ShouldDamageInvincible || IsBlocking && DamageInfo.CanBeBlocked)
+	if (bIsInvincible && !DamageInfo.ShouldDamageInvincible || bIsBlocking && DamageInfo.CanBeBlocked)
 	{
+		OnDamageAvoided.Broadcast(DamageInfo);
 		return false;
 	}
+
+	CurrentHealth = FMath::Clamp(CurrentHealth - DamageInfo.DamageAmount, 0.0f, MaxHealth);
 	
-	CurrentHealth = FMath::Clamp(CurrentHealth-DamageInfo.DamageAmount, 0.0f, MaxHealth);
-	 return true;
+	OnDamageTaken.Broadcast(DamageInfo);
+	
+	if (CurrentHealth <= 0.0f)
+	{
+		bIsDead = true;
+		OnDeath.Broadcast();
+	}
+	
+	return true;
 }
 
-void UDamageSystemComponent::HandleIncomingHeal(float HealAmmount, AActor* Healer)
+void UDamageSystemComponent::HandleIncomingHeal(float HealAmount, AActor* Healer)
 {
-	if (IsDead) {return;}
-	CurrentHealth =FMath::Clamp(CurrentHealth + HealAmmount, 0.f, MaxHealth);
+	if (bIsDead) {return;}
+	CurrentHealth =FMath::Clamp(CurrentHealth + HealAmount, 0.f, MaxHealth);
+	OnHealRecived.Broadcast(HealAmount, Healer);
+	
 }
 
 
