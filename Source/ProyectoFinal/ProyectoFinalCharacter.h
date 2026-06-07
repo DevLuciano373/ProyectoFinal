@@ -9,6 +9,7 @@
 #include "Utils/WarriorType.h"
 #include "ProyectoFinalCharacter.generated.h"
 
+class ASwordWeapon;
 class UBoxComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -119,12 +120,37 @@ protected:
 	// Agrego la accion de curar
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* HealAction;
+	
+	
+	// Le agrego un arma al personaje
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	TSubclassOf<ASwordWeapon> SwordClass;
+	
+
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FName HandSocketName = TEXT("HandGrip_R");
+	
 	void DoAttack();
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DoAttack(FDamageInfo DamageInfo);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayAttackEffects(UAnimMontage* MontageToPlay);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	TObjectPtr<UAnimMontage> SwordAttackAnimMontage;
+	
 	UPROPERTY(BlueprintReadOnly, Category="Combat")
 	bool bIsAttacking = false;
 	
 	void DoHeal();
 	virtual void BeginPlay() override;
+	
+public:
+	UPROPERTY()
+	TObjectPtr<ASwordWeapon> EquippedSword;
 };
 
 

@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "ProyectoFinal.h"
+#include "Actors/SwordWeapon.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
 #include "Components/DamageSystemComponent.h"
@@ -77,7 +78,7 @@ void AProyectoFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProyectoFinalCharacter::Look);
 		
 		// Esta accion la agregamos nosotros!!
-		// EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AProyectoFinalCharacter::DoAttack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AProyectoFinalCharacter::DoAttack);
 		
 		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Started, this, &AProyectoFinalCharacter::DoHeal);
 	}
@@ -190,9 +191,36 @@ void AProyectoFinalCharacter::OnRep_PlayerState()
 	}
 }
 
+
 void AProyectoFinalCharacter::DoAttack()
 {
+	FDamageInfo DamageInfo;
+	DamageInfo.DamageCauser	= this;
+	DamageInfo.DamageAmount = 5.0f;
+	DamageInfo.CanBeBlocked = true;
+	DamageInfo.CanBeParried= true;
+	DamageInfo.DamageType = EDamageType::Physical;
+	DamageInfo.DamageResponse = EDamageResponse::HitReaction;
+	Server_DoAttack(DamageInfo);
+}
 
+void AProyectoFinalCharacter::Server_DoAttack_Implementation(FDamageInfo DamageInfo)
+{
+	
+	Multicast_PlayAttackEffects(SwordAttackAnimMontage);
+}
+
+bool AProyectoFinalCharacter::Server_DoAttack_Validate(FDamageInfo DamageInfo)
+{
+	return DamageInfo.DamageAmount > 0.0f;
+}
+
+void AProyectoFinalCharacter::Multicast_PlayAttackEffects_Implementation(UAnimMontage* MontageToPlay)
+{
+	if (SwordAttackAnimMontage)
+	{
+		PlayAnimMontage(SwordAttackAnimMontage);
+	}
 }
 
 void AProyectoFinalCharacter::DoHeal()
@@ -250,6 +278,21 @@ void AProyectoFinalCharacter::DoHeal()
 void AProyectoFinalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (SwordClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+		
+		EquippedSword = GetWorld()->SpawnActor<ASwordWeapon>(SwordClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+		
+		if (EquippedSword)
+		{
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			EquippedSword->AttachToComponent(GetMesh(), AttachRules, HandSocketName);
+		}
+	}
 }
 
 
