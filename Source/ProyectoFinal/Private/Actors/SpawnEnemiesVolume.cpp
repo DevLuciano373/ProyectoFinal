@@ -4,6 +4,7 @@
 #include "Actors/SpawnEnemiesVolume.h"
 
 #include "Components/BoxComponent.h"
+#include "Framework/BrawlerArenaGameState.h"
 #include "Kismet/KismetMathLibrary.h"
 
 
@@ -25,7 +26,10 @@ void ASpawnEnemiesVolume::BeginPlay()
 	SpawnEnemiesVolume->ShapeColor = FColor::Yellow;
 	SpawnEnemiesVolume->MarkRenderStateDirty();
 	
-
+	if (!HasAuthority())return;
+	ABrawlerArenaGameState* GS = GetWorld()->GetGameState<ABrawlerArenaGameState>();
+	if (!GS) return;
+	GS->AddSpawnZone(this);
 	
 }
 
@@ -85,7 +89,7 @@ bool ASpawnEnemiesVolume::GetValidateSpawnPoint(FVector& OutLocation) const
 	
 }
 
-void ASpawnEnemiesVolume::SpawnSingleEnemy()
+void ASpawnEnemiesVolume::SpawnSingleEnemy() const
 {
 	SpawnEnemy();
 }

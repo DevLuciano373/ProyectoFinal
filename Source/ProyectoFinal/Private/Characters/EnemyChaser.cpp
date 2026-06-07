@@ -4,6 +4,7 @@
 #include "Characters/EnemyChaser.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Framework/BrawlerArenaGameMode.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Framework/BrawlerArenaPlayerState.h"
 
@@ -19,7 +20,8 @@ AEnemyChaser::AEnemyChaser()
 void AEnemyChaser::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	// Cuando se spawnea un enemigo se agrega a la ola
+	AddEnemyToWave();
 }
 
 // Called every frame
@@ -34,19 +36,52 @@ void AEnemyChaser::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void AEnemyChaser::AddEnemyToWave()
+{
+	if (!HasAuthority())return;
+	ABrawlerArenaGameState* GS = GetWorld()->GetGameState<ABrawlerArenaGameState>();
+	if (GS)
+	{
+		GS->AddEnemyToWave();
+	}
+}
+
+
+void AEnemyChaser::RespondToDamageTaken_Implementation(const FDamageInfo& DamageInfo)
+{
+	Super::RespondToDamageTaken_Implementation(DamageInfo);
+	DamageRecived = DamageInfo;
+}
+
 void AEnemyChaser::RespondToDeath_Implementation()
 {
 	Super::RespondToDeath_Implementation();
+	
+	// lo que pasa si se muere
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
-	if (ABrawlerArenaGameState* GS = GetWorld()->GetGameState<ABrawlerArenaGameState>())
+	GetWorldTimerManager().SetTimer(WaitDeath, 4.0f, AEnemyChaser::Destroy(), false);
+	
+	// A chequear si es asi
+	AActor* OtherActor = DamageRecived.DamageCauser;
+	if (!OtherActor)return; 
+	APawn* OtherPawn = Cast<APawn>(OtherActor);
+	if (OtherPawn && HasAuthority())
 	{
-		if (ABrawlerArenaPlayerState* PS = GetPlayerState<ABrawlerArenaPlayerState>())
+		APlayerController* KillerController = Cast<APlayerController>(OtherPawn->GetController());
+	
+		if (KillerController)
 		{
-				GS->OnEnemyKilled();
+			ABrawlerArenaPlayerState* PS = KillerController->GetPlayerState<ABrawlerArenaPlayerState>();
+			if (PS)
+			{
+				PS->AddOneKill(KillPoints);
+				GEngine->AddOnScreenDebugMessage(-1, 0.1, FColor::Red, FString::Printf(TEXT("Puntos otorgados a %s, nuevo score: %f"), *PS->GetName(), KillPoints));
+			}
 		}
 	}
-	Destroy();
+
+
 }
 

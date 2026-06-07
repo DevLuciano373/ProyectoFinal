@@ -250,14 +250,6 @@ void AProyectoFinalCharacter::DoHeal()
 void AProyectoFinalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	if (HUDWidgetClass)
-	{
-		HUDWidgetInstance = CreateWidget<UPlayerHud>(GetWorld(), HUDWidgetClass);
-		if (HUDWidgetInstance)
-		{
-			HUDWidgetInstance->AddToViewport();
-		}
-	}
 }
 
 

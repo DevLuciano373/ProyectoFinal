@@ -3,8 +3,7 @@
 
 #include "Public/Framework/BrawlerArenaGameMode.h"
 
-#include "EngineUtils.h"
-#include "Actors/SpawnEnemiesVolume.h"
+#include "Components/DamageSystemComponent.h"
 #include "Utils/WarriorType.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Public/Framework/BrawlerArenaPlayerState.h"
@@ -17,6 +16,7 @@ ABrawlerArenaGameMode::ABrawlerArenaGameMode()
 void ABrawlerArenaGameMode::StartMatch()
 {
 	Super::StartMatch();
+	StartNextWave();
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::White, FString::Printf(TEXT("Comenzo la partida")));
 }
 
@@ -24,13 +24,7 @@ void ABrawlerArenaGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	GetWorldTimerManager().SetTimer(MatchTimer, this, &ABrawlerArenaGameMode::StartMatch, MatchStartTimerDuration, false);
-	
-	for (TActorIterator<ASpawnEnemiesVolume> It(GetWorld()); It; ++It)
-	{
-		SpawnerZones.Add(*It);
-	}
-	
-	StartNextWave();
+
 }
 
 void ABrawlerArenaGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
@@ -96,65 +90,79 @@ void ABrawlerArenaGameMode::RefillWarriorClassesPool()
 }
 
 // Determina el ganador
-void ABrawlerArenaGameMode::DetermineWinner()
+void ABrawlerArenaGameMode::DeclareWinner()
 {
-	AGameState* GS = GetGameState<ABrawlerArenaGameState>();
-	if (!GS) return;
-	
-	APlayerState* BestPlayer = nullptr;
-	float HighestScore = -1.f;
-	
-	// Iteramos sobre todos los PlayerStateConectados
-	for (APlayerState* PS : GS->PlayerArray)
-	{
-		// Unreal trae un sistema de Score integrado para poder usar rapidamente, lo podemos overraidear
-		if (PS && PS-> GetScore() > HighestScore)
-		{
-			HighestScore = PS->GetScore();
-			BestPlayer = PS;
-		}
-	}
-	// Que pasa si tengo mas de uno?
-	if (BestPlayer)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::Printf(TEXT("El ganador es %s"), *BestPlayer->GetName()));
-		// Crear un widget que muestre la condicion de victoria?
-		// GS->Multicast_OnGameEnded(BestPlayer); para que muestre el widget [dice kent que no, que use un booleano en cada character para que se muestre el widget]
-		EndMatch();
-	}
+	// Determino el gandor desde el gamestate
+	// Declarar el ganador
+	// Muestro un mensaje o algo
+	if (!HasAuthority())return;
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,FString::Printf(TEXT("Se termino el juego man")));
+	EndMatch();
 }
 
 void ABrawlerArenaGameMode::StartNextWave()
 {
-	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
-	if (!GS || SpawnerZones.Num() == 0) return;
-	
-	GS->CurrentWave++;
-	// La cantidad enemigos incrementan cuando aumenta la cantidad de oleadas! Desde aca podria cambiarse el tipo de enemigos a
-	// spawnear con la oleada creciente para que sea mas dificil
-	int EnemiesToSpawn = 5 + (GS->CurrentWave * 2);
-	GS->ActiveEnemies = EnemiesToSpawn;
-
-	for (int i = 0; i < EnemiesToSpawn; ++i)
+	GetWorldTimerManager().ClearTimer(NextWaveTimerHandle);
+	if (RemainingWaves > 0)
 	{
-		int RandomZoneIndex = FMath::RandRange(0, SpawnerZones.Num() - 1);
-		SpawnerZones[RandomZoneIndex]->SpawnSingleEnemy();
-		
+		RemainingWaves--;
+		// Obtenemos la ola actual
+		int CurrentWave = EnemyWaves - RemainingWaves;
+		ABrawlerArenaGameState* GS = Cast<ABrawlerArenaGameState>(GetWorld()->GetGameState());
+		if (GS)
+		{
+			int NumOfPlayers = GetNumPlayers();
+			// Meto un numero para "ajustar" la dificultad
+			GS->SetEnemiesInThisWave(CurrentWave * NumOfPlayers * 2);
+			// Spawneo los enemigos
+			GS->SpawnEnemiesForWave();
+		}
+	} else
+	{
+		// No deberia llamarse pero lo dejo x las dudas
+		DeclareWinner();
 	}
 	
 	
 }
 
-void ABrawlerArenaGameMode::OnWaveCleared()
+void ABrawlerArenaGameMode::EndWave()
 {
-	RemainingWaves--;
-	if (RemainingWaves <= 0)
+	if (!HasAuthority())return;
+	if (RemainingWaves == 0)
 	{
-		DetermineWinner();
-	}else
-	{
-		StartNextWave();
+		DeclareWinner();
 	}
+	// Deberia tener un enum que conecte un tipo de estado del gamemode para cambiar el hud del jugador cuando
+	// termine la ola actual
+	
+	// Curamos a los jugadores
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn())
+		{
+			APawn* PlayerPawn = PC->GetPawn();
+			ABrawlerArenaPlayerState* PS = Cast<ABrawlerArenaPlayerState>(PC->PlayerState);
+			UDamageSystemComponent* DamageComponent = PlayerPawn->FindComponentByClass<UDamageSystemComponent>();
+			if (DamageComponent)
+			{
+				float FullHealth = DamageComponent->MaxHealth;
+				DamageComponent->HandleIncomingHeal(FullHealth, PlayerPawn);
+				if (PS)
+				{
+					FString PlayerName = PS->GetPlayerName();
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green,
+					                                 FString::Printf(TEXT("Jugador %s curado"), *PlayerName));	
+				}
+				
+			}
+		}
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green,FString::Printf(TEXT("Ola terminada, esperando nueva ola")));
+	// Llamammos al cooldown para esperar a la proxima ola
+	GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &ABrawlerArenaGameMode::StartNextWave,CooldownWaveTime, false);
 }
+
 
 

@@ -2,6 +2,8 @@
 
 
 #include "Public/Framework/BrawlerArenaPlayerState.h"
+
+#include "Framework/BrawlerArenaGameState.h"
 #include "Utils/WarriorType.h"
 #include "Net/UnrealNetwork.h"
 
@@ -24,3 +26,17 @@ void ABrawlerArenaPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ThisClass, WarriorType);
 }
+
+void ABrawlerArenaPlayerState::AddOneKill(const float ScoreAmount)
+{
+	if (!HasAuthority())return;
+	const float NewScore = GetScore()+ScoreAmount;
+	SetScore(NewScore);
+	ABrawlerArenaGameState* GS = GetWorld()->GetGameState<ABrawlerArenaGameState>();
+	if (GS)
+	{
+		GS->OnKilledEnemy();
+	}
+}
+
+

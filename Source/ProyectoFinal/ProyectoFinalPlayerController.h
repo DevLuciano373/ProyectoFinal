@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "ProyectoFinalPlayerController.generated.h"
 
+class UPlayerHud;
 class UInputMappingContext;
 class UUserWidget;
 

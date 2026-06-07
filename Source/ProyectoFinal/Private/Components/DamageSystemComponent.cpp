@@ -10,23 +10,20 @@
 // Sets default values for this component's properties
 UDamageSystemComponent::UDamageSystemComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
+	// No se si es necesario que este en el tick
 	PrimaryComponentTick.bCanEverTick = true;
-
+	
+	// Para todos los que lo tienen
+	SetIsReplicated(true);
+	
+	MaxHealth = 100.0f;
+	CurrentHealth = MaxHealth;
 	// ...
 }
 
-void UDamageSystemComponent::OnRep_MaxHealth() const
+void UDamageSystemComponent::BeginPlay()
 {
-	// Para la UI
-	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-}
-
-void UDamageSystemComponent::OnRep_CurrentHealth() const
-{
-	// Para la UI
-	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+	Super::BeginPlay();
 }
 
 void UDamageSystemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -36,18 +33,17 @@ void UDamageSystemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePr
 	DOREPLIFETIME(UDamageSystemComponent, MaxHealth);
 }
 
-
-// Called when the game starts
-void UDamageSystemComponent::BeginPlay()
+void UDamageSystemComponent::OnRep_HealthChanged() const
 {
-	Super::BeginPlay();
-
-	// ...
-	
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT("Se replico la vida: %f / %f"), CurrentHealth, MaxHealth));
 }
+	
 
 bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 {
+	// Solo el servidor maneja el daño
+	if (!GetOwner()->HasAuthority()){return false;}
 	if (bIsDead) { return false;}
 	
 	if (bIsInvincible && !DamageInfo.ShouldDamageInvincible || bIsBlocking && DamageInfo.CanBeBlocked)
@@ -71,10 +67,11 @@ bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 
 void UDamageSystemComponent::HandleIncomingHeal(float HealAmount, AActor* Healer)
 {
+	// Solo el servidor maneja la curacion
+	if (!GetOwner()->HasAuthority()){return;}
 	if (bIsDead) {return;}
 	CurrentHealth =FMath::Clamp(CurrentHealth + HealAmount, 0.f, MaxHealth);
 	OnHealRecived.Broadcast(HealAmount, Healer);
-	
 }
 
 

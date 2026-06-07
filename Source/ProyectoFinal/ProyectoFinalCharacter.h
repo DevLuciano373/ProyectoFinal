@@ -109,8 +109,9 @@ public:
 	// Replicamos para el cliente cuando define el PlayerState
 	virtual void OnRep_PlayerState() override;
 	
-protected:
 	
+	
+protected:
 	// Agregamos una accion de atacar
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* AttackAction;
@@ -123,14 +124,6 @@ protected:
 	bool bIsAttacking = false;
 	
 	void DoHeal();
-	
-	// Barra de vida
-	UPROPERTY(EditAnywhere, Category="UI")
-	TSubclassOf<class UUserWidget> HUDWidgetClass;
-	
-	UPROPERTY()
-	class UPlayerHud* HUDWidgetInstance;
-	
 	virtual void BeginPlay() override;
 };
 

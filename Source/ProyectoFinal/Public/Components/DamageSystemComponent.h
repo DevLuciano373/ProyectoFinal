@@ -22,22 +22,18 @@ public:
 	// Sets default values for this component's properties
 	UDamageSystemComponent();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing=OnRep_MaxHealth)
-	float MaxHealth=100.0f;
+	UPROPERTY(ReplicatedUsing=OnRep_HealthChanged, EditAnywhere, BlueprintReadWrite)
+	float MaxHealth;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_HealthChanged, EditAnywhere, BlueprintReadOnly)
+	float CurrentHealth = MaxHealth;
 	
 	UFUNCTION()
-	void OnRep_MaxHealth() const;
-	
-	UFUNCTION()
-	void OnRep_CurrentHealth() const;
+	void OnRep_HealthChanged() const;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 private:
-	
-	UPROPERTY(Replicated=OnRep_CurrentHealth)
-	float CurrentHealth = MaxHealth;
-	
 
 	UPROPERTY()
 	bool bIsDead = false;

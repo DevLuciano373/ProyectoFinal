@@ -27,4 +27,7 @@ public:
 	void OnRep_WarriorType();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	void AddOneKill(float ScoreAmount);
+
 };

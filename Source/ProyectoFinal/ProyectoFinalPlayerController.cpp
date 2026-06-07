@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "Blueprint/UserWidget.h"
 #include "ProyectoFinal.h"
+#include "Widgets/PlayerHud.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
 void AProyectoFinalPlayerController::BeginPlay()

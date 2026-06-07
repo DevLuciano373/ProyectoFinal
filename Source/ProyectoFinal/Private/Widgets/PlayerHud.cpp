@@ -9,24 +9,34 @@
 #include "Components/TextBlock.h"
 
 
-void UPlayerHud::NativeOnInitialized()
+void UPlayerHud::NativeConstruct()
 {
-	Super::NativeOnInitialized();
+	Super::NativeConstruct();
 	
-	CharacterOwner = Cast<AProyectoFinalCharacter>(GetOwningPlayer()->GetCharacter());
-	if (CharacterOwner)
+	APlayerController* PlayerController = GetOwningPlayer();
+	if (!PlayerController) {return;}
+	APawn* Pawn = PlayerController->GetPawn();
+	if (!Pawn) {return;}
+	DamageComponent = Pawn->FindComponentByClass<UDamageSystemComponent>();
+	if (DamageComponent)
 	{
-		UDamageSystemComponent* DSC = CharacterOwner->FindComponentByClass<UDamageSystemComponent>();
-		if (DSC)
-		{
-			DSC->OnHealthChanged.AddDynamic( this, &UPlayerHud::UpdateHealth );
-		}		
+		DamageComponent->OnHealthChanged.AddDynamic(this, &UPlayerHud::UpdateHealth);
+		UpdateHealth(DamageComponent->CurrentHealth, DamageComponent->MaxHealth);
 	}
+}
 
+void UPlayerHud::NativeDestruct()
+{
+	if (DamageComponent)
+	{
+		DamageComponent->OnHealthChanged.RemoveDynamic(this, &UPlayerHud::UpdateHealth);
+	}
+	Super::NativeDestruct();
 }
 
 void UPlayerHud::UpdateHealth(float CurrentHealth, float MaxHealth)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 0.2f,FColor::Red,FString::Printf(TEXT("%f / %f"), CurrentHealth, MaxHealth));
 	if (HealthBar)
 	{
 		HealthBar->SetPercent(CurrentHealth/MaxHealth);

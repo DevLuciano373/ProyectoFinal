@@ -255,7 +255,7 @@ void ACombatEnemy::HandleDeath()
 	{
 		if (ABrawlerArenaGameState* GS = World->GetGameState<ABrawlerArenaGameState>())
 		{
-			GS->OnEnemyKilled();
+			//GS->OnEnemyKilled();
 		}
 		
 	}

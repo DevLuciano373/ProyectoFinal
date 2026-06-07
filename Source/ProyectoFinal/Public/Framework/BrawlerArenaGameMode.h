@@ -7,6 +7,8 @@
 #include "Utils/WarriorType.h"
 #include "BrawlerArenaGameMode.generated.h"
 
+class AEnemyChaser;
+class UPlayerHud;
 class ASpawnEnemiesVolume;
 /**
  * 
@@ -25,6 +27,12 @@ public:
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
+	TSubclassOf<UPlayerHud> HUDWidgetClass;
+		
+
+	
 	
 	// Aca deberia definir como es que se gana y que hacer al respecto
 	// virtual void CheckWinCondition();
@@ -51,8 +59,16 @@ public:
 	// Tiempo de descanso entre ola y ola
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Match Config")
 	float CooldownWaveTime = 5.0f;
+
+	UFUNCTION()
+	void StartNextWave();
+	
+	UFUNCTION()
+	void EndWave();
 	
 private:
+	UPROPERTY()
+	TObjectPtr<UPlayerHud> HUDWidgetInstance;
 	
 	UFUNCTION(BlueprintCallable, Category="Warrior Class")
 	void AssignWarriorType(APlayerController* NewPlayer);
@@ -62,21 +78,12 @@ private:
 	
 	// Esta funcion se trigueara cuando RemainingWaves llegue a cero, es decir cuando no queden mas waves
 	UFUNCTION()
-	void DetermineWinner();
-
-	UPROPERTY()
-	TArray<ASpawnEnemiesVolume*> SpawnerZones;
-	
-	void StartNextWave();
+	void DeclareWinner();
 	
 	UPROPERTY()
 	TArray<EWarriorType> AvailableClassesPool;
 
+	// Para esperar a la proxima ola en modo espectador
 	FTimerHandle NextWaveTimerHandle;
-
-	
-public:
-	// Se llama desde el gamestate
-	void OnWaveCleared();
 
 };

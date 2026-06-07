@@ -49,8 +49,8 @@ private:
 	bool GetValidateSpawnPoint(FVector& OutLocation) const;
 	
 public:
-	// Para llamar desde el GM
-	UFUNCTION(BlueprintCallable, Category = "SpawningZone")
-	void SpawnSingleEnemy();
+	// Para llamar desde el GS
+	UFUNCTION(Category = "SpawningZone")
+	void SpawnSingleEnemy() const;
 	
 };

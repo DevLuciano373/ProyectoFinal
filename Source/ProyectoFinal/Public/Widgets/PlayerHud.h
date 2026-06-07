@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHud.generated.h"
 
+class UDamageSystemComponent;
 class AProyectoFinalCharacter;
 class UTextBlock;
 class UProgressBar;
@@ -16,13 +17,19 @@ UCLASS()
 class PROYECTOFINAL_API UPlayerHud : public UUserWidget
 {
 	GENERATED_BODY()
-	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 private:
+	
+	
 	UPROPERTY(EditAnywhere, meta=(BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
 	
 	UPROPERTY(EditAnywhere, meta=(BindWidget))
 	TObjectPtr<UTextBlock> HealthText;
+	
+	UPROPERTY()
+	TObjectPtr<UDamageSystemComponent> DamageComponent;
 	
 public:
 	UFUNCTION(BlueprintCallable, Category="UI")

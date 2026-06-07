@@ -3,12 +3,9 @@
 
 #include "Public/Framework/BrawlerArenaGameState.h"
 
-#include "Blueprint/UserWidget.h"
+#include "Actors/SpawnEnemiesVolume.h"
 #include "Framework/BrawlerArenaGameMode.h"
-#include "GameFramework/GameSession.h"
-#include "Net/UnrealNetwork.h"
-#include "UObject/FastReferenceCollector.h"
-#include "Widgets/WaveCountdownWidget.h"
+
 
 // void ABrawlerArenaGameState::Multicast_OnGameEnded_Implementation(ABrawlerArenaPlayerState* WinnerPlayerState)
 // {
@@ -25,72 +22,46 @@
 // 	
 // }
 
-
-void ABrawlerArenaGameState::OnEnemyKilled()
+void ABrawlerArenaGameState::AddSpawnZone(ASpawnEnemiesVolume* Zona)
 {
-	if (HasAuthority())
+	ZonasSpawn.Add(Zona);
+}
+
+void ABrawlerArenaGameState::SpawnEnemiesForWave()
+{
+	// iteramos de uno hasta el numero de enemigos en la ola
+	for (int i = 0; i < EnemiesInThisWave; ++i)
 	{
-		ActiveEnemies--;
-		if (ActiveEnemies <= 0)
-		{
-			if (ABrawlerArenaGameMode* GM = GetWorld()->GetAuthGameMode<ABrawlerArenaGameMode>())
-			{
-				StartIntermission(GM->CooldownWaveTime);	
-			}
-		}
+		if (ZonasSpawn.IsEmpty())return;
+		int8 RandomIndex = FMath::RandRange(0, ZonasSpawn.Num() - 1);
+		ASpawnEnemiesVolume* ZonaElegida = ZonasSpawn[RandomIndex];
+		ZonaElegida->SpawnSingleEnemy();		
 	}
 }
 
-void ABrawlerArenaGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void ABrawlerArenaGameState::OnKilledEnemy()
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass, ActiveEnemies);
-	DOREPLIFETIME(ThisClass, CurrentWave);
-}
-
-void ABrawlerArenaGameState::StartIntermission(float Duration)
-{
-	SecondsUntilNextWave = FMath::CeilToInt(Duration);
-
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	if (PC && CountdownWidgetClass)
-	{
-		CountdownWidget = CreateWidget<UWaveCountdownWidget>(PC, CountdownWidgetClass);
-		if (CountdownWidget)
-		{
-			CountdownWidget->AddToViewport();
-			CountdownWidget->UpdateTime(SecondsUntilNextWave);
-		}
-	}
+	if (!HasAuthority())return;
 	
-	if (HasAuthority())
+	ActiveEnemies = FMath::Clamp(ActiveEnemies-1, 0, EnemiesInThisWave);
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::Printf(TEXT("ActiveEnemies: %i"), ActiveEnemies));
+	if (ActiveEnemies == 0)
 	{
-		GetWorldTimerManager().SetTimer(IntermissionTimerHandle, this, &ABrawlerArenaGameState::UpdateIntermission, 1.0f, true);
-	}
-}
-
-void ABrawlerArenaGameState::UpdateIntermission()
-{
-	SecondsUntilNextWave--;
-	if (CountdownWidget)
-	{
-		CountdownWidget->UpdateTime(SecondsUntilNextWave);
-	}
-	if (SecondsUntilNextWave <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(IntermissionTimerHandle);
-		if (CountdownWidget)
+		ABrawlerArenaGameMode* GM = GetWorld()->GetAuthGameMode<ABrawlerArenaGameMode>();
+		if (GM)
 		{
-			CountdownWidget->RemoveFromParent();
+			GM->EndWave();
 		}
 		
-		if (HasAuthority())
-		{
-			if (ABrawlerArenaGameMode* GM = GetWorld()->GetAuthGameMode<ABrawlerArenaGameMode>())
-			{
-				GM->OnWaveCleared();
-			}
-		}
 	}
-	
+}
+
+void ABrawlerArenaGameState::SetEnemiesInThisWave(float Quantity)
+{
+	EnemiesInThisWave = Quantity;
+}
+
+void ABrawlerArenaGameState::AddEnemyToWave()
+{
+	ActiveEnemies +=1;
 }
