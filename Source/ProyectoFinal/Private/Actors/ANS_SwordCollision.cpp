@@ -10,6 +10,7 @@ void UANS_SwordCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeq
                                       float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
+
 	if (AProyectoFinalCharacter* Character = Cast<AProyectoFinalCharacter>(MeshComp->GetOwner()))
 	{
 		if (Character->EquippedSword)

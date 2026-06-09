@@ -31,6 +31,9 @@ void UDamageSystemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UDamageSystemComponent, CurrentHealth);
 	DOREPLIFETIME(UDamageSystemComponent, MaxHealth);
+	DOREPLIFETIME(UDamageSystemComponent, bIsDead);
+	DOREPLIFETIME(UDamageSystemComponent, bIsBlocking);
+	DOREPLIFETIME(UDamageSystemComponent, bIsInvincible);
 }
 
 void UDamageSystemComponent::OnRep_HealthChanged() const
@@ -43,7 +46,12 @@ void UDamageSystemComponent::OnRep_HealthChanged() const
 bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 {
 	// Solo el servidor maneja el daño
-	if (!GetOwner()->HasAuthority()){return false;}
+	if (!GetOwner()->HasAuthority())
+	{
+		Server_HandleIncomingDamage(DamageInfo);
+		return true;
+	}
+	
 	if (bIsDead) { return false;}
 	
 	if (bIsInvincible && !DamageInfo.ShouldDamageInvincible || bIsBlocking && DamageInfo.CanBeBlocked)
@@ -63,6 +71,16 @@ bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 	}
 	
 	return true;
+}
+
+void UDamageSystemComponent::Server_HandleIncomingDamage_Implementation(const FDamageInfo& DamageInfo)
+{
+	HandleIncomingDamage(DamageInfo);
+}
+
+bool UDamageSystemComponent::Server_HandleIncomingDamage_Validate(const FDamageInfo& DamageInfo)
+{
+	return DamageInfo.DamageAmount>=0.0f;
 }
 
 void UDamageSystemComponent::HandleIncomingHeal(float HealAmount, AActor* Healer)

@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "DamageSystemComponent.generated.h"
 
+struct FDamageInfo;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDamageTaken, const FDamageInfo&, DamageInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDamageAvoided, const FDamageInfo&, DamageInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealRecived, float, HealAmount, AActor*, Healer);
@@ -32,16 +33,14 @@ public:
 	void OnRep_HealthChanged() const;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	
-private:
 
-	UPROPERTY()
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="States")
 	bool bIsDead = false;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="States")
 	bool bIsBlocking= false;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="States")
 	bool bIsInvincible= false;
 	
 
@@ -54,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Damage")
 	bool HandleIncomingDamage(const FDamageInfo& DamageInfo);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_HandleIncomingDamage(const FDamageInfo& DamageInfo);
+	
 	UFUNCTION(BlueprintCallable, Category="Damage")
 	void HandleIncomingHeal(float HealAmount, AActor* Healer);
 	

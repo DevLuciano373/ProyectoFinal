@@ -133,8 +133,14 @@ protected:
 	
 	void DoAttack();
 	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_DoAttack(FDamageInfo DamageInfo);
+	UFUNCTION(Server, Reliable)
+	void Server_DoAttack();
+
+	UFUNCTION()
+	void SpawnAndEquipWeapon();
+
+	UFUNCTION(Server,Reliable)
+	void Server_RequestEquipWeapon();
 	
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayAttackEffects(UAnimMontage* MontageToPlay);

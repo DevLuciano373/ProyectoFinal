@@ -3,7 +3,9 @@
 
 #include "Actors/SwordWeapon.h"
 
+#include "ProyectoFinalCharacter.h"
 #include "Components/BoxComponent.h"
+#include "Components/DamageSystemComponent.h"
 #include "Interfaces/DamagableInterface.h"
 
 
@@ -13,6 +15,7 @@ ASwordWeapon::ASwordWeapon()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetReplicates(true);
+	bReplicates=true;
 	
 	SwordMesh = CreateDefaultSubobject<UStaticMeshComponent>("SwordMesh");
 	SwordMesh->SetupAttachment(RootComponent);
@@ -33,6 +36,10 @@ void ASwordWeapon::BeginPlay()
 	Super::BeginPlay();
 	CollisionSword->ShapeColor = FColor::Red;
 	CollisionSword->MarkRenderStateDirty();
+	if (CollisionSword)
+	{
+		CollisionSword->OnComponentBeginOverlap.AddDynamic(this, &ASwordWeapon::OnOverlapBegin);
+	}
 }
 
 // Called every frame
@@ -41,21 +48,48 @@ void ASwordWeapon::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ASwordWeapon::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor)
+
+
+void ASwordWeapon::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!HasAuthority())return;
-	
-	if (OtherActor && OtherActor != GetOwner())
+	if (!OtherActor || OtherActor == GetOwner()) return;
+	if (HasAuthority())
 	{
-		if (OtherActor->GetClass()->ImplementsInterface(UDamagableInterface::StaticClass()))
-		{
-			IDamagableInterface::Execute_TakeDamage(OtherActor, DamageInfo);
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("Ejecutando desde la interfaz")));
-		}
-		
+		DamageInfo.DamageCauser = GetOwner();
+		DamageInfo.DamageAmount = 45.0f;
+		DamageInfo.CanBeBlocked = true;
+		DamageInfo.CanBeParried = true;
+		DamageInfo.DamageResponse = EDamageResponse::HitReaction;
+		DamageInfo.DamageType = EDamageType::Physical;
+		ApplyDamageToActor(OtherActor, DamageInfo);
+	}
+	else
+	{
+		ServerRequestDamage(OtherActor, DamageInfo);
 	}
 }
 
+void ASwordWeapon::ServerRequestDamage_Implementation(AActor* DamagedActor, FDamageInfo Damage)
+{
+	if (!HasAuthority()) return;
+	
+	ApplyDamageToActor(DamagedActor, Damage);
+}
+
+bool ASwordWeapon::ServerRequestDamage_Validate(AActor* DamagedActor, FDamageInfo Damage)
+{
+	return DamageInfo.DamageAmount >=0.0f && DamageInfo.DamageAmount <= 100.0f;
+}
+
+void ASwordWeapon::ApplyDamageToActor(const AActor* DamagedActor, const FDamageInfo& Damage)
+{
+	UDamageSystemComponent* DSC = DamagedActor->FindComponentByClass<UDamageSystemComponent>();
+	if (DSC)
+	{
+		DSC->HandleIncomingDamage(Damage);
+	}
+}
 
 void ASwordWeapon::SetHitBoxActive(const bool bActive) const
 {
@@ -66,6 +100,7 @@ void ASwordWeapon::SetHitBoxActive(const bool bActive) const
 		CollisionSword->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		CollisionSword->SetGenerateOverlapEvents(true);
 		CollisionSword->ShapeColor = FColor::Yellow;
+		CollisionSword->MarkRenderStateDirty();
 		
 	}
 	else
@@ -73,6 +108,6 @@ void ASwordWeapon::SetHitBoxActive(const bool bActive) const
 		CollisionSword->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		CollisionSword->SetGenerateOverlapEvents(false);
 		CollisionSword->ShapeColor = FColor::Red;
+		CollisionSword->MarkRenderStateDirty();
 	}
 }
-

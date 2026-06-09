@@ -194,25 +194,38 @@ void AProyectoFinalCharacter::OnRep_PlayerState()
 
 void AProyectoFinalCharacter::DoAttack()
 {
-	FDamageInfo DamageInfo;
-	DamageInfo.DamageCauser	= this;
-	DamageInfo.DamageAmount = 5.0f;
-	DamageInfo.CanBeBlocked = true;
-	DamageInfo.CanBeParried= true;
-	DamageInfo.DamageType = EDamageType::Physical;
-	DamageInfo.DamageResponse = EDamageResponse::HitReaction;
-	Server_DoAttack(DamageInfo);
+
+	Server_DoAttack();
 }
 
-void AProyectoFinalCharacter::Server_DoAttack_Implementation(FDamageInfo DamageInfo)
+void AProyectoFinalCharacter::SpawnAndEquipWeapon()
 {
-	
+	if (SwordClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+		
+		EquippedSword = GetWorld()->SpawnActor<ASwordWeapon>(SwordClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+		
+		if (EquippedSword)
+		{
+			EquippedSword->SetOwner(this);
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			EquippedSword->AttachToComponent(GetMesh(), AttachRules, HandSocketName);
+			
+		}
+	}
+}
+
+void AProyectoFinalCharacter::Server_RequestEquipWeapon_Implementation()
+{
+	SpawnAndEquipWeapon();
+}
+
+void AProyectoFinalCharacter::Server_DoAttack_Implementation()
+{
 	Multicast_PlayAttackEffects(SwordAttackAnimMontage);
-}
-
-bool AProyectoFinalCharacter::Server_DoAttack_Validate(FDamageInfo DamageInfo)
-{
-	return DamageInfo.DamageAmount > 0.0f;
 }
 
 void AProyectoFinalCharacter::Multicast_PlayAttackEffects_Implementation(UAnimMontage* MontageToPlay)
@@ -278,21 +291,15 @@ void AProyectoFinalCharacter::DoHeal()
 void AProyectoFinalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (SwordClass)
+	if (HasAuthority())
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = GetInstigator();
-		
-		EquippedSword = GetWorld()->SpawnActor<ASwordWeapon>(SwordClass, GetActorLocation(), GetActorRotation(), SpawnParams);
-		
-		if (EquippedSword)
-		{
-			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
-			EquippedSword->AttachToComponent(GetMesh(), AttachRules, HandSocketName);
-		}
+		SpawnAndEquipWeapon();
 	}
+	else
+	{
+		Server_RequestEquipWeapon();
+	}
+
 }
 
 
