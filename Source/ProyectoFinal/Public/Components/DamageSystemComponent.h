@@ -29,8 +29,7 @@ public:
 	UPROPERTY(ReplicatedUsing=OnRep_HealthChanged, EditAnywhere, BlueprintReadOnly)
 	float CurrentHealth = MaxHealth;
 	
-	UFUNCTION()
-	void OnRep_HealthChanged() const;
+
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -48,6 +47,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnRep_HealthChanged() const;
 public:
 	
 	UFUNCTION(BlueprintCallable, Category="Damage")
