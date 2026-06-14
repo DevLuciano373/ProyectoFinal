@@ -14,7 +14,7 @@ UDamageSystemComponent::UDamageSystemComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	
 	// Para todos los que lo tienen
-	SetIsReplicated(true);
+	SetIsReplicatedByDefault(true);
 	
 	MaxHealth = 100.0f;
 	CurrentHealth = MaxHealth;
@@ -24,6 +24,8 @@ UDamageSystemComponent::UDamageSystemComponent()
 void UDamageSystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
 void UDamageSystemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

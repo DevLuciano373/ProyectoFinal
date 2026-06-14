@@ -24,7 +24,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// Llamo a esta funcion para agregarse al array de enemigos en la oleada en el gamemode
 	void AddEnemyToWave();
