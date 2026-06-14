@@ -17,7 +17,8 @@ UCLASS()
 class PROYECTOFINAL_API UPlayerHud : public UUserWidget
 {
 	GENERATED_BODY()
-	virtual void NativeConstruct() override;
+protected:
+	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
 private:
 	

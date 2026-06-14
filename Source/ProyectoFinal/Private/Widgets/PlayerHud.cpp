@@ -8,21 +8,17 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
-
-void UPlayerHud::NativeConstruct()
+void UPlayerHud::NativeOnInitialized()
 {
-	Super::NativeConstruct();
+	Super::NativeOnInitialized();
 	
-	APlayerController* PlayerController = GetOwningPlayer();
-	if (!PlayerController) {return;}
-	APawn* Pawn = PlayerController->GetPawn();
-	if (!Pawn) {return;}
-	DamageComponent = Pawn->FindComponentByClass<UDamageSystemComponent>();
-	if (DamageComponent)
+	CharacterOwner = Cast<AProyectoFinalCharacter>(GetOwningPlayer()->GetCharacter());
+	DamageComponent = Cast<UDamageSystemComponent>(CharacterOwner->FindComponentByClass<UDamageSystemComponent>());
+	if (DamageComponent && CharacterOwner)
 	{
-		DamageComponent->OnHealthChanged.AddDynamic(this, &UPlayerHud::UpdateHealth);
-		UpdateHealth(DamageComponent->CurrentHealth, DamageComponent->MaxHealth);
+		DamageComponent->OnHealthChanged.AddDynamic(this, &UPlayerHud::UpdateHealth);	
 	}
+	
 }
 
 void UPlayerHud::NativeDestruct()
@@ -34,16 +30,16 @@ void UPlayerHud::NativeDestruct()
 	Super::NativeDestruct();
 }
 
+
 void UPlayerHud::UpdateHealth(float CurrentHealth, float MaxHealth)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 0.2f,FColor::Red,FString::Printf(TEXT("%f / %f"), CurrentHealth, MaxHealth));
 	if (HealthBar)
 	{
 		HealthBar->SetPercent(CurrentHealth/MaxHealth);
 	}
 	if (HealthText)
 	{
-		FString HealthString = FString::Printf(TEXT("%.0f / %.0f"), CurrentHealth, MaxHealth);
+		const FString HealthString = FString::Printf(TEXT("%.0f / %.0f"), CurrentHealth, MaxHealth);
 		HealthText->SetText(FText::FromString(HealthString));
 	}
 }

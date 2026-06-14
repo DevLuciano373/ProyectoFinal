@@ -50,4 +50,19 @@ protected:
 	/** Returns true if the player should use UMG touch controls */
 	bool ShouldUseTouchControls() const;
 
+	// Para el hud
+	virtual void AcknowledgePossession(class APawn* P) override;
+	
+public: 
+	UPROPERTY(EditAnywhere, Category ="UI")
+	TSubclassOf<class UPlayerHud> PlayerHudClass;
+	
+private:
+	UPROPERTY()
+	TObjectPtr<UPlayerHud> PlayerHudInstance;
+	
+	void SetupPlayerHud(APawn* NewPawn);
+	
+	
+	
 };

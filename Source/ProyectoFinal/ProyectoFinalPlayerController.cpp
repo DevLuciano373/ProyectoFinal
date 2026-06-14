@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "Blueprint/UserWidget.h"
 #include "ProyectoFinal.h"
+#include "Components/DamageSystemComponent.h"
 #include "Widgets/PlayerHud.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
@@ -66,3 +67,30 @@ bool AProyectoFinalPlayerController::ShouldUseTouchControls() const
 	// are we on a mobile platform? Should we force touch?
 	return SVirtualJoystick::ShouldDisplayTouchInterface() || bForceTouchControls;
 }
+
+void AProyectoFinalPlayerController::AcknowledgePossession(class APawn* P)
+{
+	Super::AcknowledgePossession(P);
+	if (!IsLocalController())return;
+	
+	if (PlayerHudClass)
+	{
+		SetupPlayerHud(P);
+	}
+}
+
+void AProyectoFinalPlayerController::SetupPlayerHud(APawn* NewPawn)
+{
+	if (!NewPawn || !PlayerHudClass) return;
+	
+	if (!PlayerHudInstance)
+	{
+		PlayerHudInstance = CreateWidget<UPlayerHud>(this, PlayerHudClass);
+		if (PlayerHudInstance)
+		{
+			PlayerHudInstance->AddToViewport();
+			PlayerHudInstance->UpdateHealth(100, 100);
+		}
+	}
+}
+
