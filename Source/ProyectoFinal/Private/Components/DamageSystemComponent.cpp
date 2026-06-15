@@ -48,11 +48,7 @@ void UDamageSystemComponent::OnRep_HealthChanged() const
 bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 {
 	// Solo el servidor maneja el daño
-	if (!GetOwner()->HasAuthority())
-	{
-		Server_HandleIncomingDamage(DamageInfo);
-		return true;
-	}
+	if (!GetOwner()->HasAuthority()) return false;
 	
 	if (bIsDead) { return false;}
 	
@@ -80,10 +76,6 @@ void UDamageSystemComponent::Server_HandleIncomingDamage_Implementation(const FD
 	HandleIncomingDamage(DamageInfo);
 }
 
-bool UDamageSystemComponent::Server_HandleIncomingDamage_Validate(const FDamageInfo& DamageInfo)
-{
-	return DamageInfo.DamageAmount>=0.0f;
-}
 
 void UDamageSystemComponent::HandleIncomingHeal(float HealAmount, AActor* Healer)
 {

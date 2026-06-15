@@ -3,8 +3,8 @@
 
 #include "Characters/EnemyChaser.h"
 
-#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/DamageSystemComponent.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Framework/BrawlerArenaPlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -15,8 +15,7 @@ AEnemyChaser::AEnemyChaser()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	SetReplicates(true);
+	bReplicates = true;
 
 }
 
@@ -94,17 +93,37 @@ void AEnemyChaser::RespondToDeath_Implementation()
 }
 
 
-void AEnemyChaser::ActivateAttackCollision()
-{
-	AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-}
-
-void AEnemyChaser::DeactivateAttackCollision()
-{
-	AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-}
-
 void AEnemyChaser::PerformAttack()
+{
+	// Solo el server decide cuando el enemigo ataca
+	if (!HasAuthority()) return;
+	
+	if (!bIsAttacking && !bIsDead)
+	{
+		bIsAttacking = true;
+		MulticastPerformAttack();
+	}
+
+}
+
+void AEnemyChaser::Server_DamageOtherActor_Implementation(AActor* OtherActor)
+{
+	if (!HasAuthority())return;
+	DamageOtherActor(OtherActor);
+}
+
+void AEnemyChaser::DamageOtherActor(AActor* OtherActor)
+{
+	if (!HasAuthority())return;
+	UDamageSystemComponent* DSC = OtherActor->FindComponentByClass<UDamageSystemComponent>();
+	if (DSC && OtherActor)
+	{
+		EnemyDamage.DamageCauser = this;
+		DSC->Server_HandleIncomingDamage(EnemyDamage);
+	}
+}
+
+void AEnemyChaser::MulticastPerformAttack_Implementation()
 {
 	if (!AttackMontage) return;
 	
@@ -118,18 +137,14 @@ void AEnemyChaser::PerformAttack()
 			MontageEndedDelegate.BindUFunction(this, FName("OnAttackMontageEnded"));
 			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AttackMontage);
 		}
-		else
-		{
-			bIsAttacking = false;
-		}
 	}
 }
 
-
-
 void AEnemyChaser::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+	bIsAttacking = false;
 	OnMontageFinished.Broadcast(Montage);
 }
+
 
 

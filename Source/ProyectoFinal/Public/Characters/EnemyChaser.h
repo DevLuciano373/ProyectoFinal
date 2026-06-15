@@ -61,12 +61,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	TObjectPtr<UAnimMontage> AttackMontage;
-
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void ActivateAttackCollision();
-	
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void DeactivateAttackCollision();
 	
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void PerformAttack();
@@ -74,10 +68,21 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Animation")
 	FOnMontageFinished OnMontageFinished;
 	
-	UPROPERTY(Category="Combat", VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<UBoxComponent> AttackCollision;
-private:
+	UFUNCTION(Server, Reliable)
+	void Server_DamageOtherActor(AActor* OtherActor);
+	
+	
+	
+protected:
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPerformAttack();
+
+	
+private:
+	
+	UFUNCTION()
+	void DamageOtherActor(AActor* OtherActor);
 	
 	UPROPERTY()
 	TArray<AActor*> HitActors;

@@ -3,6 +3,7 @@
 
 #include "Characters/EnemyAttackCollision.h"
 
+#include "Characters/EnemyChaser.h"
 #include "Components/DamageSystemComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -43,20 +44,15 @@ void UEnemyAttackCollision::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSe
 		0.5f
 		);
 	
-	if (bHit && HitResult.GetActor())
+	if (bHit && HitResult.GetActor() && MeshComp->GetOwner())
 	{
 		AActor* HitActor = HitResult.GetActor();
 		
 		if (!HitActors.Contains(HitActor))
 		{
 			HitActors.AddUnique(HitActor);
-			
-			UDamageSystemComponent* DamageSystemComponent = HitActor->FindComponentByClass<UDamageSystemComponent>();
-			if (DamageSystemComponent)
-			{
-				AppliedDamage.DamageCauser = MeshComp->GetOwner();
-				DamageSystemComponent->Server_HandleIncomingDamage(AppliedDamage);
-			}
+			AEnemyChaser* Enemy = Cast<AEnemyChaser>(MeshComp->GetOwner());
+			Enemy->Server_DamageOtherActor(HitActor);
 		}
 		
 	}

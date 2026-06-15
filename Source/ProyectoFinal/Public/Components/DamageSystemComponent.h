@@ -54,7 +54,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Damage")
 	bool HandleIncomingDamage(const FDamageInfo& DamageInfo);
 
-	UFUNCTION(Server, Reliable, WithValidation)
+	UFUNCTION(Server, Reliable)
 	void Server_HandleIncomingDamage(const FDamageInfo& DamageInfo);
 	
 	UFUNCTION(BlueprintCallable, Category="Damage")
