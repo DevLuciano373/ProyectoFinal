@@ -34,18 +34,13 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<UStaticMeshComponent> SwordMesh;
-	
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		
 public:
 	
 	UFUNCTION(Server,Reliable,WithValidation)
 	void ServerRequestDamage(AActor* DamagedActor, FDamageInfo Damage);
 	
 	void ApplyDamageToActor(const AActor* DamagedActor, const FDamageInfo& Damage);
-	
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void SetHitBoxActive(bool bActive) const;
 
 	UPROPERTY()
 	FDamageInfo DamageInfo;
