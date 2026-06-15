@@ -310,11 +310,15 @@ void AProyectoFinalCharacter::Server_DamageOtherActor_Implementation(AActor* Oth
 
 void AProyectoFinalCharacter::DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo)
 {
-	if (UDamageSystemComponent* DSC = OtherActor->FindComponentByClass<UDamageSystemComponent>())
+	if (OtherActor)
 	{
-		DamageInfo.DamageCauser = this;
-		DSC->Server_HandleIncomingDamage(DamageInfo);
+		if (UDamageSystemComponent* DSC = OtherActor->FindComponentByClass<UDamageSystemComponent>())
+		{
+			DamageInfo.DamageCauser = this;
+			DSC->Server_HandleIncomingDamage(DamageInfo);
+		}		
 	}
+
 }
 
 
