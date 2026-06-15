@@ -4,19 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "ANS_SwordCollision.generated.h"
+#include "Utils/DamageSystemTypes.h"
+#include "SwordCollision.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROYECTOFINAL_API UANS_SwordCollision : public UAnimNotifyState
+class PROYECTOFINAL_API USwordCollision : public UAnimNotifyState
 {
 	GENERATED_BODY()
-	
+	public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
+	
+	UPROPERTY()
+	TArray<AActor*> HitActors;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FDamageInfo AppliedDamage;
+	
 	
 };
-
-
