@@ -3,6 +3,8 @@
 
 #include "Characters/SwordCollision.h"
 
+#include "ProyectoFinalCharacter.h"
+#include "Actors/SwordWeapon.h"
 #include "Components/DamageSystemComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -13,6 +15,23 @@ void USwordCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenc
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 	HitActors.Empty();
+	if (MeshComp->GetOwner())
+	{
+		AProyectoFinalCharacter* Player = Cast<AProyectoFinalCharacter>(MeshComp->GetOwner());
+		if (Player)
+		{
+			TArray<AActor*> AttachedActors;
+			Player->GetAttachedActors(AttachedActors);
+			for (AActor* Actor : AttachedActors)
+			{
+				ASwordWeapon* Sword = Cast<ASwordWeapon>(Actor);
+				if (Sword)
+				{
+					AppliedDamage = Sword->SwordDamage;
+				}
+			}
+		}
+	}
 }
 
 void USwordCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -20,6 +39,7 @@ void USwordCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 	HitActors.Empty();
+	
 }
 
 void USwordCollision::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime,
@@ -59,13 +79,8 @@ void USwordCollision::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequence
 		if (!HitActors.Contains(HitActor))
 		{
 			HitActors.AddUnique(HitActor);
-			
-			UDamageSystemComponent* DamageSystemComponent = HitActor->FindComponentByClass<UDamageSystemComponent>();
-			if (DamageSystemComponent)
-			{
-				AppliedDamage.DamageCauser = MeshComp->GetOwner();
-				DamageSystemComponent->Server_HandleIncomingDamage(AppliedDamage);
-			}
+			AProyectoFinalCharacter* Player = Cast<AProyectoFinalCharacter>(MeshComp->GetOwner());
+			Player->Server_DamageOtherActor(HitActor, AppliedDamage);
 		}
 		
 	}

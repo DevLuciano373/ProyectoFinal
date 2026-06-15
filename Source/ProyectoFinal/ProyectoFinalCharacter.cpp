@@ -12,14 +12,10 @@
 #include "InputActionValue.h"
 #include "ProyectoFinal.h"
 #include "Actors/SwordWeapon.h"
-#include "Blueprint/UserWidget.h"
-#include "Components/BoxComponent.h"
 #include "Components/DamageSystemComponent.h"
 #include "Framework/BrawlerArenaPlayerState.h"
-#include "Kismet/GameplayStatics.h"
 #include "Utils/WarriorType.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Widgets/PlayerHud.h"
 
 AProyectoFinalCharacter::AProyectoFinalCharacter()
 {
@@ -198,6 +194,8 @@ void AProyectoFinalCharacter::DoAttack()
 	Server_DoAttack();
 }
 
+
+
 void AProyectoFinalCharacter::SpawnAndEquipWeapon()
 {
 	if (SwordClass)
@@ -235,6 +233,8 @@ void AProyectoFinalCharacter::Multicast_PlayAttackEffects_Implementation(UAnimMo
 		PlayAnimMontage(SwordAttackAnimMontage);
 	}
 }
+
+
 
 void AProyectoFinalCharacter::DoHeal()
 {
@@ -300,6 +300,21 @@ void AProyectoFinalCharacter::BeginPlay()
 		Server_RequestEquipWeapon();
 	}
 
+}
+
+void AProyectoFinalCharacter::Server_DamageOtherActor_Implementation(AActor* OtherActor,  FDamageInfo DamageInfo)
+{
+	if (!HasAuthority()) return;
+	DamageOtherActor(OtherActor, DamageInfo);
+}
+
+void AProyectoFinalCharacter::DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo)
+{
+	if (UDamageSystemComponent* DSC = OtherActor->FindComponentByClass<UDamageSystemComponent>())
+	{
+		DamageInfo.DamageCauser = this;
+		DSC->Server_HandleIncomingDamage(DamageInfo);
+	}
 }
 
 

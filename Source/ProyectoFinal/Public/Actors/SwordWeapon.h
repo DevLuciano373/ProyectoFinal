@@ -36,13 +36,8 @@ private:
 	TObjectPtr<UStaticMeshComponent> SwordMesh;
 		
 public:
-	
-	UFUNCTION(Server,Reliable,WithValidation)
-	void ServerRequestDamage(AActor* DamagedActor, FDamageInfo Damage);
-	
-	void ApplyDamageToActor(const AActor* DamagedActor, const FDamageInfo& Damage);
 
-	UPROPERTY()
-	FDamageInfo DamageInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	FDamageInfo SwordDamage;
 	
 };

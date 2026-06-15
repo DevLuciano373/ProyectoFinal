@@ -125,9 +125,7 @@ protected:
 	// Le agrego un arma al personaje
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	TSubclassOf<ASwordWeapon> SwordClass;
-	
 
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FName HandSocketName = TEXT("HandGrip_R");
 	
@@ -136,6 +134,8 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void Server_DoAttack();
 
+
+	
 	UFUNCTION()
 	void SpawnAndEquipWeapon();
 
@@ -154,9 +154,15 @@ protected:
 	void DoHeal();
 	virtual void BeginPlay() override;
 	
+private:
+	UFUNCTION()
+	void DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo);
 public:
 	UPROPERTY()
 	TObjectPtr<ASwordWeapon> EquippedSword;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo);
 };
 
 
