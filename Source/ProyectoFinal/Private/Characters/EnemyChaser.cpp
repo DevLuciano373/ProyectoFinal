@@ -3,10 +3,11 @@
 
 #include "Characters/EnemyChaser.h"
 
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Framework/BrawlerArenaGameMode.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Framework/BrawlerArenaPlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -14,14 +15,24 @@ AEnemyChaser::AEnemyChaser()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	SetReplicates(true);
+
 }
 
 // Called when the game starts or when spawned
 void AEnemyChaser::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	// Cuando se spawnea un enemigo se agrega a la ola
 	AddEnemyToWave();
+}
+
+void AEnemyChaser::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, bIsAttacking);
 }
 
 // Called every frame
@@ -58,7 +69,8 @@ void AEnemyChaser::RespondToDeath_Implementation()
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
 	GetWorldTimerManager().SetTimer(WaitDeath, 4.0f, AEnemyChaser::Destroy(), false);
-	
+	bIsDead = true;
+
 	// A chequear si es asi
 	AActor* OtherActor = DamageRecived.DamageCauser;
 	if (!OtherActor)return; 
@@ -80,4 +92,44 @@ void AEnemyChaser::RespondToDeath_Implementation()
 
 
 }
+
+
+void AEnemyChaser::ActivateAttackCollision()
+{
+	AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AEnemyChaser::DeactivateAttackCollision()
+{
+	AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AEnemyChaser::PerformAttack()
+{
+	if (!AttackMontage) return;
+	
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && !AnimInstance->Montage_IsPlaying(AttackMontage))
+	{
+		float Duration = PlayAnimMontage(AttackMontage, 1.0f);
+		if (Duration > 0.f)
+		{
+			FOnMontageEnded MontageEndedDelegate;
+			MontageEndedDelegate.BindUFunction(this, FName("OnAttackMontageEnded"));
+			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AttackMontage);
+		}
+		else
+		{
+			bIsAttacking = false;
+		}
+	}
+}
+
+
+
+void AEnemyChaser::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	OnMontageFinished.Broadcast(Montage);
+}
+
 
