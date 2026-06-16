@@ -11,7 +11,6 @@ class UBoxComponent;
 class USphereComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMontageFinished, UAnimMontage*, Montage);
-
 UCLASS()
 class PROYECTOFINAL_API AEnemyChaser : public ACharacter_Base, public IEnemyInterface
 {
@@ -72,6 +71,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_DamageOtherActor(AActor* OtherActor);
 	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	TObjectPtr<UAnimMontage> DeathMontage;
 	
 	
 protected:
@@ -79,6 +80,9 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPerformAttack();
 
+		
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastDeath();
 	
 private:
 	
@@ -87,6 +91,16 @@ private:
 	
 	UPROPERTY()
 	TArray<AActor*> HitActors;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_DeathLogic();
+	
+	UFUNCTION()
+	void DeathLogic();
+
+	
+	UFUNCTION()
+	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrputed);
 	
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);

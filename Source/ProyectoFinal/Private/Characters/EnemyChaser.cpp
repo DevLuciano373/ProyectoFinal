@@ -64,33 +64,11 @@ void AEnemyChaser::RespondToDeath_Implementation()
 {
 	Super::RespondToDeath_Implementation();
 	
-	// lo que pasa si se muere
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetMesh()->SetSimulatePhysics(true);
-	GetWorldTimerManager().SetTimer(WaitDeath, 4.0f, AEnemyChaser::Destroy(), false);
-	bIsDead = true;
+	if (!HasAuthority()) return;
+	MulticastDeath();
+	// Solo el server decide cuando el enemigo muere
 
-	// A chequear si es asi
-	AActor* OtherActor = DamageRecived.DamageCauser;
-	if (!OtherActor)return; 
-	APawn* OtherPawn = Cast<APawn>(OtherActor);
-	if (OtherPawn && HasAuthority())
-	{
-		APlayerController* KillerController = Cast<APlayerController>(OtherPawn->GetController());
-	
-		if (KillerController)
-		{
-			ABrawlerArenaPlayerState* PS = KillerController->GetPlayerState<ABrawlerArenaPlayerState>();
-			if (PS)
-			{
-				PS->AddOneKill(KillPoints);
-				GEngine->AddOnScreenDebugMessage(-1, 0.1, FColor::Red, FString::Printf(TEXT("Puntos otorgados a %s, nuevo score: %f"), *PS->GetName(), KillPoints));
-			}
-		}
-	}
-
-
+	Server_DeathLogic();
 }
 
 
@@ -126,6 +104,36 @@ void AEnemyChaser::DamageOtherActor(AActor* OtherActor)
 	}
 }
 
+void AEnemyChaser::Server_DeathLogic_Implementation()
+{
+	if (!HasAuthority())return;
+	DeathLogic();
+}
+
+void AEnemyChaser::DeathLogic()
+{
+	bIsDead = true;
+
+	// A chequear si es asi
+	AActor* OtherActor = DamageRecived.DamageCauser;
+	if (!OtherActor)return; 
+	APawn* OtherPawn = Cast<APawn>(OtherActor);
+	if (OtherPawn && HasAuthority())
+	{
+		APlayerController* KillerController = Cast<APlayerController>(OtherPawn->GetController());
+	
+		if (KillerController)
+		{
+			ABrawlerArenaPlayerState* PS = KillerController->GetPlayerState<ABrawlerArenaPlayerState>();
+			if (PS)
+			{
+				PS->AddOneKill(KillPoints);
+				GEngine->AddOnScreenDebugMessage(-1, 0.1, FColor::Red, FString::Printf(TEXT("Puntos otorgados a %s, nuevo score: %f"), *PS->GetName(), KillPoints));
+			}
+		}
+	}
+}
+
 void AEnemyChaser::MulticastPerformAttack_Implementation()
 {
 	if (!AttackMontage) return;
@@ -141,6 +149,32 @@ void AEnemyChaser::MulticastPerformAttack_Implementation()
 			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AttackMontage);
 		}
 	}
+}
+
+void AEnemyChaser::MulticastDeath_Implementation()
+{
+	if (!DeathMontage) return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && !AnimInstance->Montage_IsPlaying(DeathMontage))
+	{
+		float Duration = PlayAnimMontage(DeathMontage, 1.0f);
+		if (Duration > 0.f)
+		{
+			FOnMontageEnded MontageEndedDelegate;
+			MontageEndedDelegate.BindUFunction(this, FName("OnDeathMontageEnded"));
+			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, DeathMontage);
+		}
+	}
+}
+
+
+void AEnemyChaser::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrputed)
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetSimulatePhysics(true);
+	// Espero 3 segundos para eliminar el actor
+	SetLifeSpan(3.0f);
 }
 
 void AEnemyChaser::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)

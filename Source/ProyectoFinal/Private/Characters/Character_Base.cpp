@@ -75,9 +75,6 @@ void ACharacter_Base::RespondToHealRecived_Implementation(float HealAmount, AAct
 
 void ACharacter_Base::RespondToDeath_Implementation()
 {
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetMesh()->SetSimulatePhysics(true);
 }
 
 // Called every frame
