@@ -109,9 +109,8 @@ public:
 	
 	// Replicamos para el cliente cuando define el PlayerState
 	virtual void OnRep_PlayerState() override;
-	
-	
-	
+
+
 protected:
 	// Agregamos una accion de atacar
 	UPROPERTY(EditAnywhere, Category="Input")
@@ -133,8 +132,6 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 	void Server_DoAttack();
-
-
 	
 	UFUNCTION()
 	void SpawnAndEquipWeapon();
@@ -154,6 +151,15 @@ protected:
 	void DoHeal();
 	virtual void BeginPlay() override;
 	
+	virtual void RespondToDeath_Implementation() override;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_RespondToDeath();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_RespondToDeath();
+
+	
 private:
 	UFUNCTION()
 	void DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo);
@@ -163,6 +169,7 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void Server_DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo);
+	
 };
 
 

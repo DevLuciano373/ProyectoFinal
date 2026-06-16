@@ -13,6 +13,7 @@
 #include "ProyectoFinal.h"
 #include "Actors/SwordWeapon.h"
 #include "Components/DamageSystemComponent.h"
+#include "Framework/BrawlerArenaGameMode.h"
 #include "Framework/BrawlerArenaPlayerState.h"
 #include "Utils/WarriorType.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -291,6 +292,7 @@ void AProyectoFinalCharacter::DoHeal()
 void AProyectoFinalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	DamageSystemComponent->HandleRespawn();
 	if (HasAuthority())
 	{
 		SpawnAndEquipWeapon();
@@ -302,11 +304,54 @@ void AProyectoFinalCharacter::BeginPlay()
 
 }
 
+void AProyectoFinalCharacter::RespondToDeath_Implementation()
+{
+	Super::RespondToDeath_Implementation();
+	if (!HasAuthority())return;
+	Multicast_RespondToDeath();
+	Server_RespondToDeath();
+	
+}
+
+void AProyectoFinalCharacter::Server_RespondToDeath_Implementation()
+{
+	if (!HasAuthority())return;
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn)
+	{
+		ABrawlerArenaPlayerState* PS = OwnerPawn->GetPlayerState<ABrawlerArenaPlayerState>();
+		if (PS)
+		{
+			PS->HandlePlayerKilled();
+		}
+	}
+	if (ABrawlerArenaGameMode* GM= GetWorld()->GetAuthGameMode<ABrawlerArenaGameMode>())
+	{
+		GM->HandlePlayerDeath(GetController());
+	}
+	if (EquippedSword)
+	{
+		EquippedSword->Destroy();
+	}
+	SetLifeSpan(4.0f);
+	
+	
+}
+
 void AProyectoFinalCharacter::Server_DamageOtherActor_Implementation(AActor* OtherActor,  FDamageInfo DamageInfo)
 {
 	if (!HasAuthority()) return;
 	DamageOtherActor(OtherActor, DamageInfo);
 }
+
+void AProyectoFinalCharacter::Multicast_RespondToDeath_Implementation()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetSimulatePhysics(true);
+	
+}
+
 
 void AProyectoFinalCharacter::DamageOtherActor(AActor* OtherActor, FDamageInfo DamageInfo)
 {
@@ -319,8 +364,6 @@ void AProyectoFinalCharacter::DamageOtherActor(AActor* OtherActor, FDamageInfo D
 			DSC->Server_HandleIncomingDamage(DamageInfo);
 		}		
 	}
-
 }
-
 
 
