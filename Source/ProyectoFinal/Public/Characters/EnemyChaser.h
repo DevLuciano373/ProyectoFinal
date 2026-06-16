@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character_Base.h"
+#include "Interfaces/EnemyInterface.h"
 #include "EnemyChaser.generated.h"
 
 class UBoxComponent;
@@ -12,7 +13,7 @@ class USphereComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMontageFinished, UAnimMontage*, Montage);
 
 UCLASS()
-class PROYECTOFINAL_API AEnemyChaser : public ACharacter_Base
+class PROYECTOFINAL_API AEnemyChaser : public ACharacter_Base, public IEnemyInterface
 {
 	GENERATED_BODY()
 

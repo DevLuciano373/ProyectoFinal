@@ -32,7 +32,7 @@ void UEnemyAttackCollision::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSe
 		MeshComp->GetWorld(),
 		Start, 
 		End, 
-		20.0f, 
+		100.0f, 
 		ObjectTypes, 
 		false, 
 		ActorsToIgnore, 

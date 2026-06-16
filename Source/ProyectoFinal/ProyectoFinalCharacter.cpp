@@ -312,6 +312,7 @@ void AProyectoFinalCharacter::DamageOtherActor(AActor* OtherActor, FDamageInfo D
 {
 	if (OtherActor)
 	{
+		if (OtherActor->Implements<UPlayerInterface>()) return;
 		if (UDamageSystemComponent* DSC = OtherActor->FindComponentByClass<UDamageSystemComponent>())
 		{
 			DamageInfo.DamageCauser = this;

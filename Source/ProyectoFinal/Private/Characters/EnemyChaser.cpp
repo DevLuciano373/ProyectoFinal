@@ -7,6 +7,7 @@
 #include "Components/DamageSystemComponent.h"
 #include "Framework/BrawlerArenaGameState.h"
 #include "Framework/BrawlerArenaPlayerState.h"
+#include "Interfaces/EnemyInterface.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -112,9 +113,11 @@ void AEnemyChaser::Server_DamageOtherActor_Implementation(AActor* OtherActor)
 	DamageOtherActor(OtherActor);
 }
 
+
 void AEnemyChaser::DamageOtherActor(AActor* OtherActor)
 {
 	if (!HasAuthority())return;
+	if (OtherActor->Implements<UEnemyInterface>())return;
 	UDamageSystemComponent* DSC = OtherActor->FindComponentByClass<UDamageSystemComponent>();
 	if (DSC && OtherActor)
 	{

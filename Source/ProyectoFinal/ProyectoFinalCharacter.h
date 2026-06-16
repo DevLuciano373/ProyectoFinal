@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/Character_Base.h"
-#include "GameFramework/Character.h"
+#include "Interfaces/PlayerInterface.h"
 #include "Logging/LogMacros.h"
 #include "Utils/WarriorType.h"
 #include "ProyectoFinalCharacter.generated.h"
@@ -23,7 +23,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
  *  Implements a controllable orbiting camera
  */
 UCLASS(abstract)
-class AProyectoFinalCharacter : public ACharacter_Base
+class AProyectoFinalCharacter : public ACharacter_Base, public IPlayerInterface
 {
 	GENERATED_BODY()
 
