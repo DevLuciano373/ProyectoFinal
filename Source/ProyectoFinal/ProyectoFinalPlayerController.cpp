@@ -11,6 +11,8 @@
 #include "Widgets/PlayerHud.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
+
+
 void AProyectoFinalPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -75,7 +77,7 @@ void AProyectoFinalPlayerController::AcknowledgePossession(class APawn* P)
 	
 	if (PlayerHudClass)
 	{
-		SetupPlayerHud(P);
+		AProyectoFinalPlayerController::SetupPlayerHud(P);
 	}
 }
 
@@ -91,6 +93,10 @@ void AProyectoFinalPlayerController::SetupPlayerHud(APawn* NewPawn)
 			PlayerHudInstance->AddToViewport();
 			PlayerHudInstance->UpdateHealth(100, 100);
 		}
+	} else
+	{
+		PlayerHudInstance->RebindToComponent();
+		PlayerHudInstance->UpdateHealth(100, 100);
 	}
 }
 

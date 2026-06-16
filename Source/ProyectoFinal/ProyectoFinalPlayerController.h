@@ -53,6 +53,8 @@ protected:
 	// Para el hud
 	virtual void AcknowledgePossession(class APawn* P) override;
 	
+	
+	
 public: 
 	UPROPERTY(EditAnywhere, Category ="UI")
 	TSubclassOf<class UPlayerHud> PlayerHudClass;
