@@ -36,6 +36,10 @@ private:
 	TObjectPtr<UDamageSystemComponent> DamageComponent;
 	
 public:
+	
+	UFUNCTION()
+	void RebindToComponent();
+	
 	UFUNCTION(BlueprintCallable, Category="UI")
 	void UpdateHealth(float CurrentHealth, float MaxHealth);
 	

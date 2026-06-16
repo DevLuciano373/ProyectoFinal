@@ -33,6 +33,15 @@ void UPlayerHud::NativeOnInitialized()
 
 void UPlayerHud::NativeDestruct()
 {
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		if (ABrawlerArenaPlayerState* PS = PC->GetPlayerState<ABrawlerArenaPlayerState>())
+		{
+			UpdateScoreDisplay(PS->GetScore());
+			
+			PS->OnScoreChanged.RemoveDynamic(this, &UPlayerHud::UpdateScoreDisplay);
+		}
+	}
 	if (DamageComponent)
 	{
 		DamageComponent->OnHealthChanged.RemoveDynamic(this, &UPlayerHud::UpdateHealth);
@@ -40,6 +49,25 @@ void UPlayerHud::NativeDestruct()
 	Super::NativeDestruct();
 }
 
+
+void UPlayerHud::RebindToComponent()
+{
+	CharacterOwner = Cast<AProyectoFinalCharacter>(GetOwningPlayer()->GetCharacter());
+	DamageComponent = Cast<UDamageSystemComponent>(CharacterOwner->FindComponentByClass<UDamageSystemComponent>());
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		if (ABrawlerArenaPlayerState* PS = PC->GetPlayerState<ABrawlerArenaPlayerState>())
+		{
+			UpdateScoreDisplay(PS->GetScore());
+			
+			PS->OnScoreChanged.AddDynamic(this, &UPlayerHud::UpdateScoreDisplay);
+		}
+	}
+	if (DamageComponent && CharacterOwner)
+	{
+		DamageComponent->OnHealthChanged.AddDynamic(this, &UPlayerHud::UpdateHealth);	
+	}
+}
 
 void UPlayerHud::UpdateHealth(float CurrentHealth, float MaxHealth)
 {
