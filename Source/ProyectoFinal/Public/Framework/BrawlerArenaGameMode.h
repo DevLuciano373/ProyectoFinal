@@ -27,7 +27,8 @@ public:
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-	
+
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
 	TSubclassOf<UPlayerHud> HUDWidgetClass;
 		
@@ -66,6 +67,12 @@ public:
 	UFUNCTION()
 	void EndWave();
 	
+	UFUNCTION()
+	void RespawnPlayer(AController* Controller);
+	
+	UFUNCTION()
+	void HandlePlayerDeath(AController* Controller);
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UPlayerHud> HUDWidgetInstance;
@@ -85,5 +92,7 @@ private:
 
 	// Para esperar a la proxima ola en modo espectador
 	FTimerHandle NextWaveTimerHandle;
+	
+
 
 };
