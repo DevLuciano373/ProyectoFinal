@@ -62,6 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Damage")
 	void HandleIncomingHeal(float HealAmount, AActor* Healer);
 	
+	UFUNCTION(BlueprintCallable, Category="Damage")
+	void HandleRespawn();
+	
 	// Get
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Health")
 	float GetCurrentHealth(){return CurrentHealth;}
