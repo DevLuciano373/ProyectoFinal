@@ -14,6 +14,14 @@ void ABrawlerArenaPlayerState::OnRep_Score()
 	OnScoreChanged.Broadcast(GetScore());
 }
 
+void ABrawlerArenaPlayerState::HandlePlayerKilled()
+{
+	if (!HasAuthority())return;
+	const float NewScore = GetScore()-PlayerDeathPenalty;
+	SetScore(NewScore);
+	OnScoreChanged.Broadcast(NewScore);
+}
+
 void ABrawlerArenaPlayerState::SetWarriorType(EWarriorType Type)
 {
 	WarriorType = Type;

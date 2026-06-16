@@ -100,6 +100,45 @@ void ABrawlerArenaGameMode::DeclareWinner()
 	EndMatch();
 }
 
+void ABrawlerArenaGameMode::RespawnPlayer(AController* Controller)
+{
+	if (!Controller)return;
+	RestartPlayer(Controller);
+	APawn* PlayerPawn = Controller->GetPawn();
+	if (PlayerPawn)
+	{
+		UDamageSystemComponent* DamageComponent = PlayerPawn->FindComponentByClass<UDamageSystemComponent>();
+		if (DamageComponent)
+		{
+			float FullHealth = DamageComponent->MaxHealth;
+			DamageComponent->HandleIncomingHeal(FullHealth, PlayerPawn);
+			DamageComponent->HandleRespawn();
+		}
+			
+	}
+	
+	
+
+}
+
+void ABrawlerArenaGameMode::HandlePlayerDeath(AController* Controller)
+{
+	if (!Controller) return;
+	
+	FTimerHandle TimerHandle;
+	
+	FTimerDelegate Delegate;
+	Delegate.BindUObject(
+		this,
+		&ABrawlerArenaGameMode::RespawnPlayer,
+		Controller);
+	GetWorldTimerManager().SetTimer(
+		TimerHandle,
+		Delegate,
+		5.f,
+		false);
+}
+
 void ABrawlerArenaGameMode::StartNextWave()
 {
 	GetWorldTimerManager().ClearTimer(NextWaveTimerHandle);
