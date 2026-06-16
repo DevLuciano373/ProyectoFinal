@@ -80,10 +80,19 @@ void UDamageSystemComponent::Server_HandleIncomingDamage_Implementation(const FD
 void UDamageSystemComponent::HandleIncomingHeal(float HealAmount, AActor* Healer)
 {
 	// Solo el servidor maneja la curacion
-	if (!GetOwner()->HasAuthority()){return;}
-	if (bIsDead) {return;}
+	if (!GetOwner()->HasAuthority())return;
 	CurrentHealth =FMath::Clamp(CurrentHealth + HealAmount, 0.f, MaxHealth);
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 	OnHealRecived.Broadcast(HealAmount, Healer);
+}
+
+void UDamageSystemComponent::HandleRespawn()
+{
+	if (!GetOwner()->HasAuthority())return;
+	
+	CurrentHealth = MaxHealth;
+	bIsDead = false;
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
 
