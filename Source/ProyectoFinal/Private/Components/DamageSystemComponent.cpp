@@ -43,7 +43,7 @@ void UDamageSystemComponent::OnRep_HealthChanged() const
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT("Se replico la vida: %f / %f"), CurrentHealth, MaxHealth));
 }
-	
+
 
 bool UDamageSystemComponent::HandleIncomingDamage(const FDamageInfo& DamageInfo)
 {

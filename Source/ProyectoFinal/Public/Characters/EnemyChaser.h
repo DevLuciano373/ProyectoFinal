@@ -35,7 +35,7 @@ public:
 	// Llamo a esta funcion para agregarse al array de enemigos en la oleada en el gamemode
 	void AddEnemyToWave();
 	
-	// Puntos por muerte, deberia crear una clase base que los contenga, pero no quiero
+	// Puntos por matar al zombie
 	UPROPERTY(BlueprintReadWrite)
 	float KillPoints = 10.0;
 	

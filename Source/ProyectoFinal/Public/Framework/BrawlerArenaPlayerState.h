@@ -10,12 +10,18 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScoreChanged, float, NewScore);
+
 UCLASS()
 class PROYECTOFINAL_API ABrawlerArenaPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
 	
+	virtual void OnRep_Score() override;
+	
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnScoreChanged OnScoreChanged;
 	
 	void SetWarriorType(EWarriorType Type);
 	EWarriorType GetWarriorType() const;

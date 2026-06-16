@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHud.generated.h"
 
+class ABrawlerArenaPlayerState;
 class UDamageSystemComponent;
 class AProyectoFinalCharacter;
 class UTextBlock;
@@ -22,6 +23,8 @@ protected:
 	virtual void NativeDestruct() override;
 private:
 	
+	UPROPERTY(EditAnywhere, meta=(BindWidget))
+	TObjectPtr<UTextBlock> ScoreText;
 	
 	UPROPERTY(EditAnywhere, meta=(BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -38,4 +41,7 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<AProyectoFinalCharacter> CharacterOwner;
+	
+	UFUNCTION()
+	void UpdateScoreDisplay(float NewScore);
 };

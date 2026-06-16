@@ -128,7 +128,6 @@ void AEnemyChaser::DeathLogic()
 			if (PS)
 			{
 				PS->AddOneKill(KillPoints);
-				GEngine->AddOnScreenDebugMessage(-1, 0.1, FColor::Red, FString::Printf(TEXT("Puntos otorgados a %s, nuevo score: %f"), *PS->GetName(), KillPoints));
 			}
 		}
 	}
@@ -174,7 +173,7 @@ void AEnemyChaser::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrputed)
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
 	// Espero 3 segundos para eliminar el actor
-	SetLifeSpan(3.0f);
+	SetLifeSpan(0.1f);
 }
 
 void AEnemyChaser::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)

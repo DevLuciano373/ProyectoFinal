@@ -49,6 +49,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_HealthChanged() const;
+	
+
 public:
 	
 	UFUNCTION(BlueprintCallable, Category="Damage")
