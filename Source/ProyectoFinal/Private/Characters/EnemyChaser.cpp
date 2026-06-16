@@ -172,7 +172,7 @@ void AEnemyChaser::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrputed)
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
-	// Espero 3 segundos para eliminar el actor
+	// Espero n segundos para eliminar el actor
 	SetLifeSpan(0.1f);
 }
 
