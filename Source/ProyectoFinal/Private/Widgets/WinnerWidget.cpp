@@ -25,9 +25,8 @@ void UWinnerWidget::NativeDestruct()
 
 void UWinnerWidget::SetWinnerText(FString WinnerPlayer)
 {
-	FText WinnerText = FText::FromString(WinnerPlayer);
 	if (WinnerPlayerText)
 	{
-		WinnerPlayerText->SetText(WinnerText);
+		WinnerPlayerText->SetText(FText::FromString(WinnerPlayer));
 	}
 }
