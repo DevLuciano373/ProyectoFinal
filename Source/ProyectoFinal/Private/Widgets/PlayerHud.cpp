@@ -54,14 +54,10 @@ void UPlayerHud::RebindToComponent()
 {
 	CharacterOwner = Cast<AProyectoFinalCharacter>(GetOwningPlayer()->GetCharacter());
 	DamageComponent = Cast<UDamageSystemComponent>(CharacterOwner->FindComponentByClass<UDamageSystemComponent>());
-	if (APlayerController* PC = GetOwningPlayer())
+	if (ABrawlerArenaPlayerState* PS = CharacterOwner->GetPlayerState<ABrawlerArenaPlayerState>())
 	{
-		if (ABrawlerArenaPlayerState* PS = PC->GetPlayerState<ABrawlerArenaPlayerState>())
-		{
-			UpdateScoreDisplay(PS->GetScore());
-			
-			PS->OnScoreChanged.AddDynamic(this, &UPlayerHud::UpdateScoreDisplay);
-		}
+		UpdateScoreDisplay(PS->GetScore());
+		PS->OnScoreChanged.AddDynamic(this, &UPlayerHud::UpdateScoreDisplay);
 	}
 	if (DamageComponent && CharacterOwner)
 	{

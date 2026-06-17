@@ -7,8 +7,9 @@
 #include "InputMappingContext.h"
 #include "Blueprint/UserWidget.h"
 #include "ProyectoFinal.h"
-#include "Components/DamageSystemComponent.h"
 #include "Widgets/PlayerHud.h"
+#include "Widgets/WaveCountdownWidget.h"
+#include "Widgets/WinnerWidget.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
 
@@ -35,6 +36,14 @@ void AProyectoFinalPlayerController::BeginPlay()
 		}
 
 	}
+
+	if (ABrawlerArenaGameState* GS = GetWorld()->GetGameState<ABrawlerArenaGameState>())
+	{
+		GS->OnPhaseChanged.AddDynamic(this, &AProyectoFinalPlayerController::HandlePhaseChanged);
+	}
+	
+	OnPossessedPawnChanged.AddDynamic(this, &AProyectoFinalPlayerController::HandlePawnChanged);
+	
 }
 
 void AProyectoFinalPlayerController::SetupInputComponent()
@@ -74,10 +83,59 @@ void AProyectoFinalPlayerController::AcknowledgePossession(class APawn* P)
 {
 	Super::AcknowledgePossession(P);
 	if (!IsLocalController())return;
-	
-	if (PlayerHudClass)
+
+}
+
+void AProyectoFinalPlayerController::HandlePhaseChanged(EMatchPhase NewPhase)
+{
+	if (CurrentWidget)
 	{
-		AProyectoFinalPlayerController::SetupPlayerHud(P);
+		CurrentWidget->RemoveFromParent();
+		CurrentWidget = nullptr;
+	}
+	
+	if (!IsLocalPlayerController()) return;
+
+	switch (NewPhase)
+	{
+	case EMatchPhase::WaitingToStart:
+		if (WaveCountDownWidgetClass)
+		{
+			CurrentWidget = CreateWidget<UWaveCountdownWidget>(this, WaveCountDownWidgetClass);
+		}
+		break;
+		
+	case EMatchPhase::WaveInProgress:
+		if (PlayerHudClass)
+		{
+			CurrentWidget = CreateWidget<UPlayerHud>(this, PlayerHudClass);
+			
+		}
+		break;
+		
+		case EMatchPhase::WaitingForNextWave:
+		if (WaveCountDownWidgetClass)
+		{
+			CurrentWidget = CreateWidget<UWaveCountdownWidget>(this, WaveCountDownWidgetClass);
+		}
+		break;
+		
+	case EMatchPhase::GameOver:
+		if (WinnerWidgetClass)
+		{
+			CurrentWidget  = CreateWidget<UWinnerWidget>(this, WinnerWidgetClass);
+		}
+		break;
+		
+	}
+	
+	if (CurrentWidget)
+	{
+		CurrentWidget->AddToViewport();
+		if (UPlayerHud* PHU = Cast<UPlayerHud>(CurrentWidget))
+		{
+			PHU->UpdateHealth(100, 100);	
+		}
 	}
 }
 
@@ -97,6 +155,17 @@ void AProyectoFinalPlayerController::SetupPlayerHud(APawn* NewPawn)
 	{
 		PlayerHudInstance->RebindToComponent();
 		PlayerHudInstance->UpdateHealth(100, 100);
+	}
+}
+
+void AProyectoFinalPlayerController::HandlePawnChanged(APawn* PreviousPawn, APawn* NewPawn)
+{
+	if (!NewPawn) return;
+	
+	if (UPlayerHud* PlayerHud = Cast<UPlayerHud>(CurrentWidget))
+	{
+		PlayerHud->RebindToComponent();
+		PlayerHud->UpdateHealth(100, 100);
 	}
 }
 

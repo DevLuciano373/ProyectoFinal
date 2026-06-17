@@ -14,10 +14,14 @@ UCLASS()
 class PROYECTOFINAL_API UWaveCountdownWidget : public UUserWidget
 {
 	GENERATED_BODY()
+protected:
+	virtual void NativeOnInitialized() override;
+	virtual void NativeDestruct() override;
+public:
 	
-	public:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> CountdownText;
 	
-	void UpdateTime(int SecondsRemaining);
+	UFUNCTION()
+	void UpdateCountdownText(int32 NewTime);
 };

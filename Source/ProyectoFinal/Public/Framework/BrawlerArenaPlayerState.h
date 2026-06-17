@@ -21,13 +21,13 @@ public:
 	virtual void OnRep_Score() override;
 	
 	void HandlePlayerKilled();
-
-	UPROPERTY(BlueprintAssignable, Category="Events")
-	FOnScoreChanged OnScoreChanged;
 	
 	UPROPERTY(BlueprintReadWrite, Category="Score")
 	float PlayerDeathPenalty;
 	
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnScoreChanged OnScoreChanged;
+
 	void SetWarriorType(EWarriorType Type);
 	EWarriorType GetWarriorType() const;
 	

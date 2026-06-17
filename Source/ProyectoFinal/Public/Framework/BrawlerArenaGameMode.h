@@ -93,6 +93,10 @@ private:
 	// Para esperar a la proxima ola en modo espectador
 	FTimerHandle NextWaveTimerHandle;
 	
+	FTimerHandle TimerHandle_EndMatch;
+	
+	UFUNCTION()
+	void StartCountdown(float Duration);
 
 
 };

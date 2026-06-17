@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Framework/BrawlerArenaGameState.h"
 #include "GameFramework/PlayerController.h"
 #include "ProyectoFinalPlayerController.generated.h"
 
+class UWinnerWidget;
+class UWaveCountdownWidget;
 class UPlayerHud;
 class UInputMappingContext;
 class UUserWidget;
@@ -21,6 +24,8 @@ class AProyectoFinalPlayerController : public APlayerController
 	
 protected:
 
+
+	
 	/** Input Mapping Contexts */
 	UPROPERTY(EditAnywhere, Category ="Input|Input Mappings")
 	TArray<UInputMappingContext*> DefaultMappingContexts;
@@ -54,17 +59,41 @@ protected:
 	virtual void AcknowledgePossession(class APawn* P) override;
 	
 	
-	
-public: 
 	UPROPERTY(EditAnywhere, Category ="UI")
-	TSubclassOf<class UPlayerHud> PlayerHudClass;
+	TSubclassOf<UPlayerHud> PlayerHudClass;
+	
+	UPROPERTY(EditAnywhere, Category ="UI")
+	TSubclassOf<UWaveCountdownWidget> WaveCountDownWidgetClass;
+	
+	UPROPERTY(EditAnywhere, Category ="UI")
+	TSubclassOf<UWinnerWidget> WinnerWidgetClass;
+	
+	UFUNCTION()
+	void HandlePhaseChanged(EMatchPhase NewPhase);
+	
+	
+	
+
+
 	
 private:
 	UPROPERTY()
 	TObjectPtr<UPlayerHud> PlayerHudInstance;
 	
-	void SetupPlayerHud(APawn* NewPawn);
+	UPROPERTY()
+	TObjectPtr<UWaveCountdownWidget> WaveCountdownInstance;
 	
+	UPROPERTY()
+	TObjectPtr<UWinnerWidget> WinnerWidgetInstance;
 	
+	UPROPERTY()
+	TObjectPtr<UUserWidget> CurrentWidget;
+	
+	UFUNCTION()
+	void SetupPlayerHud(APawn* NewPawn);	
+	
+	UFUNCTION()
+	void HandlePawnChanged(APawn* OldPawn, APawn* NewPawn);
 	
 };
+

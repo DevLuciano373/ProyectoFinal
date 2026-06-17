@@ -23,6 +23,12 @@ void ABrawlerArenaGameMode::StartMatch()
 void ABrawlerArenaGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	ABrawlerArenaGameState* GS = Cast<ABrawlerArenaGameState>(GetWorld()->GetGameState());
+	if (GS)
+	{
+		GS->SetGamePhase(EMatchPhase::WaitingToStart);
+		StartCountdown(CooldownWaveTime);
+	}
 	GetWorldTimerManager().SetTimer(MatchTimer, this, &ABrawlerArenaGameMode::StartMatch, MatchStartTimerDuration, false);
 
 }
@@ -49,6 +55,8 @@ void ABrawlerArenaGameMode::PostLogin(APlayerController* NewPlayer)
 	
 	// Definimos una "Clase de jugador" para cada player participando
 	AssignWarriorType(NewPlayer);
+	
+
 }
 
 void ABrawlerArenaGameMode::AssignWarriorType(APlayerController* NewPlayer)
@@ -87,17 +95,6 @@ void ABrawlerArenaGameMode::RefillWarriorClassesPool()
 	AvailableClassesPool.Add(EWarriorType::Mage);
 	AvailableClassesPool.Add(EWarriorType::Archer);
 	
-}
-
-// Determina el ganador
-void ABrawlerArenaGameMode::DeclareWinner()
-{
-	// Determino el gandor desde el gamestate
-	// Declarar el ganador
-	// Muestro un mensaje o algo
-	if (!HasAuthority())return;
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,FString::Printf(TEXT("Se termino el juego man")));
-	EndMatch();
 }
 
 void ABrawlerArenaGameMode::RespawnPlayer(AController* Controller)
@@ -144,32 +141,29 @@ void ABrawlerArenaGameMode::StartNextWave()
 	GetWorldTimerManager().ClearTimer(NextWaveTimerHandle);
 	if (RemainingWaves > 0)
 	{
+		
 		RemainingWaves--;
 		// Obtenemos la ola actual
 		int CurrentWave = EnemyWaves - RemainingWaves;
 		ABrawlerArenaGameState* GS = Cast<ABrawlerArenaGameState>(GetWorld()->GetGameState());
 		if (GS)
 		{
+			GS->SetGamePhase(EMatchPhase::WaveInProgress);
 			int NumOfPlayers = GetNumPlayers();
 			// Meto un numero para "ajustar" la dificultad
 			GS->SetEnemiesInThisWave(CurrentWave * NumOfPlayers * 2);
 			// Spawneo los enemigos
 			GS->SpawnEnemiesForWave();
 		}
-	} else
-	{
-		// No deberia llamarse pero lo dejo x las dudas
-		DeclareWinner();
 	}
-	
-	
 }
 
 void ABrawlerArenaGameMode::EndWave()
 {
 	if (!HasAuthority())return;
-	if (RemainingWaves == 0)
+	if (RemainingWaves <= 0)
 	{
+		// Frenamos todo, se acabo el juego
 		DeclareWinner();
 	}
 	// Deberia tener un enum que conecte un tipo de estado del gamemode para cambiar el hud del jugador cuando
@@ -198,10 +192,45 @@ void ABrawlerArenaGameMode::EndWave()
 			}
 		}
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green,FString::Printf(TEXT("Ola terminada, esperando nueva ola")));
-	// Llamammos al cooldown para esperar a la proxima ola
+	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
+	
+	if (GS)
+	{
+		GS->SetGamePhase(EMatchPhase::WaitingForNextWave);
+		StartCountdown(CooldownWaveTime);
+	}
 	GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &ABrawlerArenaGameMode::StartNextWave,CooldownWaveTime, false);
 }
 
+void ABrawlerArenaGameMode::DeclareWinner()
+{
+	// Determino el gandor desde el gamestate
+	// Declarar el ganador
+	// Muestro un mensaje o algo
+	if (!HasAuthority())return;
+	// Cambio la ui al ganador
+	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
+	if (GS)
+	{
+		GS->GetWinnerPlayerState(); // Declara el ganador que emite el Gamestate
+		GS->SetGamePhase(EMatchPhase::GameOver);
+	}
+	
+	// Espero unos segundos y termino el match
+	GetWorldTimerManager().SetTimer(
+	TimerHandle_EndMatch,
+	this,
+	&ABrawlerArenaGameMode::EndMatch,
+	5.0f,
+	false
+	);
+}
 
-
+void ABrawlerArenaGameMode::StartCountdown(float Duration)
+{
+	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
+	if (GS)
+	{
+		GS->WaveCountDown = GS->GetServerWorldTimeSeconds() + Duration;
+	}
+}
