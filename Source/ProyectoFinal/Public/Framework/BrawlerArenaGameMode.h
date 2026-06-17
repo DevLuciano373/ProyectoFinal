@@ -94,9 +94,5 @@ private:
 	FTimerHandle NextWaveTimerHandle;
 	
 	FTimerHandle TimerHandle_EndMatch;
-	
-	UFUNCTION()
-	void StartCountdown(float Duration);
-
 
 };

@@ -13,8 +13,7 @@ void UWinnerWidget::NativeOnInitialized()
 	Super::NativeOnInitialized();
 	if (ABrawlerArenaGameState* MyGameState = Cast<ABrawlerArenaGameState>(GetWorld()->GetGameState()))
 	{
-		// 2. Obtenemos el nombre del ganador?
-		SetWinnerText(MyGameState->GetWinnerName());
+		MyGameState->OnWinnerNameChange.AddDynamic(this, &UWinnerWidget::SetWinnerText);
 	}
 }
 

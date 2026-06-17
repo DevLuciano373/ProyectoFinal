@@ -5,6 +5,7 @@
 
 #include "Components/TextBlock.h"
 #include "Framework/BrawlerArenaGameState.h"
+#include "Kismet/GameplayStatics.h"
 
 void UWaveCountdownWidget::NativeOnInitialized()
 {
@@ -12,8 +13,7 @@ void UWaveCountdownWidget::NativeOnInitialized()
 	if (ABrawlerArenaGameState* MyGameState = Cast<ABrawlerArenaGameState>(GetWorld()->GetGameState()))
 	{
 		// 2. Nos suscribimos al delegado
-		MyGameState->OnCountdownChanged.AddDynamic(this, &UWaveCountdownWidget::UpdateCountdownText);
-        UpdateCountdownText(MyGameState->GetRemainingTime());
+        UpdateCountdownText();
 	}
 }
 
@@ -22,11 +22,23 @@ void UWaveCountdownWidget::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UWaveCountdownWidget::UpdateCountdownText(int32 NewTime)
+void UWaveCountdownWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	UpdateCountdownText();
+}
+
+
+void UWaveCountdownWidget::UpdateCountdownText()
+{
+	
 	if (CountdownText)
 	{
-		FString TimeString = FString::Printf(TEXT("%d"), NewTime);
+		const float Timer = UGameplayStatics::GetWorldDeltaSeconds(this);
+		Countdown = FMath::Clamp(Timer - Countdown, 2.f, Countdown);
+		
+		
+		FString TimeString = FString::Printf(TEXT("%f"), Countdown);
 		CountdownText->SetText(FText::FromString(TimeString));
 	}
 	

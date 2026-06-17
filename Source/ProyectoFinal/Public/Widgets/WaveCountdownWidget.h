@@ -17,11 +17,15 @@ class PROYECTOFINAL_API UWaveCountdownWidget : public UUserWidget
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;;
 public:
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> CountdownText;
 	
+	UPROPERTY()
+	float Countdown = 0.f;
+	
 	UFUNCTION()
-	void UpdateCountdownText(int32 NewTime);
+	void UpdateCountdownText();
 };

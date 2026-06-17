@@ -3,7 +3,6 @@
 
 #include "Public/Framework/BrawlerArenaGameState.h"
 
-#include "ProyectoFinalPlayerController.h"
 #include "Actors/SpawnEnemiesVolume.h"
 #include "Framework/BrawlerArenaGameMode.h"
 #include "GameFramework/PlayerState.h"
@@ -35,30 +34,13 @@ void ABrawlerArenaGameState::SetGamePhase(EMatchPhase NewPhase)
 	}
 }
 
-void ABrawlerArenaGameState::SetCountdownTime(int32 NewTime)
+void ABrawlerArenaGameState::SetWinnerName(const FString& Winner)
 {
-	if (!HasAuthority())return;
-	{
-		WaveCountDown = GetRemainingTime();
-		OnCountdownChanged.Broadcast(WaveCountDown);
-	}
+	if (!HasAuthority()) return;
+	WinnerName = Winner;
+	OnWinnerNameChange.Broadcast(Winner);
 }
 
-void ABrawlerArenaGameState::OnRep_CountdownTime()
-{
-	// Cuando el cliente recibe el nuevo valor, dispara el delegado para su UI
-	OnCountdownChanged.Broadcast(WaveCountDown);
-}
-
-float ABrawlerArenaGameState::GetRemainingTime() const
-{
-	// Si aún no se ha establecido un tiempo, devolvemos 0
-	if (WaveCountDown <= 0.0f) return 0.0f;
- 
-	// Restamos el tiempo actual sincronizado del servidor al objetivo
-	float Remaining = WaveCountDown - GetServerWorldTimeSeconds();
-	return FMath::Max(Remaining, 0.0f);
-}
 
 void ABrawlerArenaGameState::AddSpawnZone(ASpawnEnemiesVolume* Zona)
 {
@@ -109,9 +91,9 @@ void ABrawlerArenaGameState::OnRep_MatchPhase()
 	OnPhaseChanged.Broadcast(CurrentPhase);
 }
 
-void ABrawlerArenaGameState::GetWinnerPlayerState()
+FString ABrawlerArenaGameState::GetWinnerPlayerName()
 {
-	if (!HasAuthority()) return;
+	if (!HasAuthority()) return "";
 	
 	APlayerState* BestPlayer = nullptr;
 	float MaxScore = -1.f;
@@ -127,8 +109,9 @@ void ABrawlerArenaGameState::GetWinnerPlayerState()
 	
 	if (BestPlayer)
 	{
-		WinnerName = BestPlayer->GetPlayerName();
+		return BestPlayer->GetPlayerName();
 	}
+	return "";
 	
 }
 

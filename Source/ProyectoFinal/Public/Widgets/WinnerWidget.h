@@ -20,6 +20,9 @@ class PROYECTOFINAL_API UWinnerWidget : public UUserWidget
 		virtual void NativeDestruct() override;
 	public:
 	
+		UPROPERTY()
+		FString WinnerName;
+		
 		UPROPERTY(meta=(BindWidget))
 		TObjectPtr<UTextBlock> WinnerPlayerText;
 	

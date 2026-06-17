@@ -13,7 +13,7 @@ class ABrawlerArenaPlayerState;
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCountdownChanged, int32, NewTime);
+
 UENUM(BlueprintType)
 enum class EMatchPhase : uint8
 {
@@ -23,7 +23,10 @@ enum class EMatchPhase : uint8
 	GameOver UMETA(DisplayName="The end"), // Mostrar al ganador
 };
 
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGamePhaseChanged, EMatchPhase, NewPhase);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWinnerNameChange, FString, WinnerName);
+
 
 UCLASS()
 class PROYECTOFINAL_API ABrawlerArenaGameState : public AGameState
@@ -34,24 +37,20 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnGamePhaseChanged OnPhaseChanged;
 	
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnWinnerNameChange OnWinnerNameChange;
+	
 	// Función para que el GameMode cambie la fase
+	UFUNCTION()
 	void SetGamePhase(EMatchPhase NewPhase);
 	
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnCountdownChanged OnCountdownChanged;
-	
+	UFUNCTION()
+	void SetWinnerName(const FString& String);
+
 	UPROPERTY(Replicated, BlueprintReadOnly, Category="Game State")
 	float WaveCountDown = 0.0f;
 	
-	UFUNCTION()
-	void SetCountdownTime(int32 NewTime);
 	
-	UFUNCTION()
-	void OnRep_CountdownTime();
-
-	UFUNCTION(BlueprintCallable, Category = "Countdown")
-	float GetRemainingTime() const;
-
 	UPROPERTY()
 	TArray<ASpawnEnemiesVolume*> ZonasSpawn;
 	
@@ -89,7 +88,7 @@ public:
 	
 	
 	// Devuelve el jugador que gano como un player state?
-	void GetWinnerPlayerState();
+	FString GetWinnerPlayerName();
 	
 	UFUNCTION()
 	FString GetWinnerName()

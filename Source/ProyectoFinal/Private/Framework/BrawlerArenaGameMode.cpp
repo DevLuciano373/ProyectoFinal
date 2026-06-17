@@ -27,7 +27,6 @@ void ABrawlerArenaGameMode::BeginPlay()
 	if (GS)
 	{
 		GS->SetGamePhase(EMatchPhase::WaitingToStart);
-		StartCountdown(CooldownWaveTime);
 	}
 	GetWorldTimerManager().SetTimer(MatchTimer, this, &ABrawlerArenaGameMode::StartMatch, MatchStartTimerDuration, false);
 
@@ -197,7 +196,6 @@ void ABrawlerArenaGameMode::EndWave()
 	if (GS)
 	{
 		GS->SetGamePhase(EMatchPhase::WaitingForNextWave);
-		StartCountdown(CooldownWaveTime);
 	}
 	GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &ABrawlerArenaGameMode::StartNextWave,CooldownWaveTime, false);
 }
@@ -212,8 +210,9 @@ void ABrawlerArenaGameMode::DeclareWinner()
 	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
 	if (GS)
 	{
-		GS->GetWinnerPlayerState(); // Declara el ganador que emite el Gamestate
+		FString WinnerName = GS->GetWinnerPlayerName(); // Declara el ganador que emite el Gamestate
 		GS->SetGamePhase(EMatchPhase::GameOver);
+		GS->SetWinnerName(WinnerName);
 	}
 	
 	// Espero unos segundos y termino el match
@@ -224,13 +223,4 @@ void ABrawlerArenaGameMode::DeclareWinner()
 	5.0f,
 	false
 	);
-}
-
-void ABrawlerArenaGameMode::StartCountdown(float Duration)
-{
-	ABrawlerArenaGameState* GS = GetGameState<ABrawlerArenaGameState>();
-	if (GS)
-	{
-		GS->WaveCountDown = GS->GetServerWorldTimeSeconds() + Duration;
-	}
 }
