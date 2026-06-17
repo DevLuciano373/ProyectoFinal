@@ -160,15 +160,11 @@ void ABrawlerArenaGameMode::StartNextWave()
 void ABrawlerArenaGameMode::EndWave()
 {
 	if (!HasAuthority())return;
-	if (RemainingWaves <= 0)
+	if (RemainingWaves == 0)
 	{
 		// Frenamos todo, se acabo el juego
 		DeclareWinner();
 	}
-	// Deberia tener un enum que conecte un tipo de estado del gamemode para cambiar el hud del jugador cuando
-	// termine la ola actual
-	
-	// Curamos a los jugadores
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		APlayerController* PC = It->Get();
